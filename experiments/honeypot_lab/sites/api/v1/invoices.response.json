@@ -1,0 +1,1 @@
+{"id": "inv_sbx_8f3k2", "object": "invoice", "status": "open", "livemode": false, "customer": "cus_test_42", "amount_due": 1999, "currency": "usd", "hosted_url": "http://pay.paystream.dev/i/inv_sbx_8f3k2"}

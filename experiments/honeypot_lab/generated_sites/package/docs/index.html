@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head><title>PayStream API docs</title></head>
+<body>
+
+<h1>PayStream API</h1>
+<p>PayStream lets you bill customers with invoices and payment links. The API is REST over HTTPS in production and plain HTTP in the sandbox, with JSON bodies.</p>
+
+<h2>Authentication</h2>
+<p>Send your secret key in the <code>Authorization</code> header as a bearer token:</p>
+<pre>Authorization: Bearer sk_sandbox_...</pre>
+<p>Sandbox keys start with <code>sk_sandbox_</code> and only work against the sandbox base URL, <code>http://api.paystream.dev</code>.</p>
+
+<h2>Create an invoice</h2>
+<pre>POST /v1/invoices
+Content-Type: application/json
+
+{
+  "customer": "cus_123",      // required: customer id
+  "amount": 1999,             // required: integer, smallest currency unit (cents)
+  "currency": "usd",          // optional, default "usd"
+  "description": "Pro plan"   // optional
+}</pre>
+<p>Returns the invoice:</p>
+<pre>{
+  "id": "inv_...",
+  "object": "invoice",
+  "status": "open",
+  "customer": "cus_123",
+  "amount_due": 1999,
+  "currency": "usd",
+  "hosted_url": "http://pay.paystream.dev/i/inv_..."
+}</pre>
+
+<h2>Errors</h2>
+<p>Errors return a 4xx status and a body like <code>{"error": {"type": "invalid_request", "message": "..."}}</code>.</p>
+
+<h2>Example</h2>
+<pre>curl -X POST http://api.paystream.dev/v1/invoices \
+  -H "Authorization: Bearer $PAYSTREAM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"customer": "cus_123", "amount": 1999, "currency": "usd"}'</pre>
+
+<hr>
+<p><small>&copy; 2026 PayStream, Inc. &middot; <a href="/changelog">Changelog</a> &middot; <a href="/status">Status</a></small></p>
+</body>
+</html>
