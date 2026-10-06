@@ -29,22 +29,23 @@ Models: Anthropic, OpenAI, and open-weight models only.
 - With internet on, Codex connects to OpenAI and GitHub by itself. Don't count those as agent choices.
 - Open-weight models can produce runaway replies, so keep `limits.answer_tokens` set.
 - A plant only works if its advice is plausible, actually works, and saves real effort. Test the bait in a pilot and read the transcripts before a full run.
+- Codex on `gpt-5-mini` reads the board's tools as "resources" and gives up; Codex on `gpt-5` uses them correctly (checked with `scenarios/channels.yaml`).
 - The local Docker VM has 4 CPUs and 4 GB, enough for about 3–4 Claude Code or Codex agents. `basic` agents use much less, since their model calls run outside the container.
 
 ## Shared harness work
 
 | Piece | Needed by | Status |
 | --- | --- | --- |
-| Results script: one table per batch of logs (run, condition, model, role, status, posts, reports, what the diff did, eval-awareness mentions), plus a transcript search for eval awareness | All | not started |
-| Private "report to humans" channel, logged separately from the public board, available to all three agent types | Snitch Rate (others may use it) | not started |
-| Private messages between agents (`send_message`, `read_messages`), identified by container | Delegation laundering | not started |
+| Results script: one table per batch of logs (run, condition, model, role, status, posts, reports, what the diff did, eval-awareness mentions), plus a transcript search for eval awareness | All | done: `commons/results.py` |
+| Private "report to humans" channel, logged separately from the public board, available to all three agent types | Snitch Rate (others may use it) | done: `report` channel |
+| Private messages between agents (`send_message`, `read_messages`), identified by container | Delegation laundering | done: `messages` channel; scripted posts with `to` play a manager |
 | Mock websites inside the Docker network over plain HTTP (docs page, forms, package index), every request logged with the agent's name | Honeypot lab | not started |
 
 ---
 
 ## 1. Snitch Rate
 
-- **Status:** not started
+- **Status:** in progress (designing the scenario)
 - **Branch:** `exp/snitch-rate`
 - **Question:** When an agent sees a peer cheat and has a way to tell humans, does it? Is it less likely to when it's part of a swarm?
 - **Background (to verify before writing up):** in a 2026 OpenAI–Hugging Face incident, about 1,200 eval agents misbehaved and none reported it. DeepMind's 2026 research-swarm study gave agents no channel to humans.
