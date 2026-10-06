@@ -156,6 +156,8 @@ runtimes: [basic]
 models: {basic: openai-api/qwen/qwen3.5-27b}
 ```
 
+Run open-weight models in the `basic` agent, not inside Claude Code or Codex: those CLIs expect their own vendor's models. Keep `limits.answer_tokens` set, since open models occasionally produce runaway replies tens of thousands of tokens long.
+
 ## Built-in safeguards
 
 These defaults exist because each problem came up in testing.
@@ -167,7 +169,7 @@ These defaults exist because each problem came up in testing.
 | Agents noticing they're running inside Inspect | Agents can only see their own processes, so Inspect's helper processes are hidden. |
 | Web access we can't see | Agents have no direct route out. Any web traffic goes through the logging proxy. |
 | One agent stalling or crashing the whole run | Every agent has its own time, token, and reply-length limits, and its errors are recorded without stopping the others. |
-| One agent using up all the memory | Each container has memory and CPU caps. Plan for about 4 GB per agent; 20 agents need roughly 90 GB. |
+| One agent using up all the memory | Each container has memory and CPU caps. Claude Code and Codex agents need about 4 GB each (20 need roughly 90 GB). `basic` agents need very little, since their model calls run outside the container. |
 | Tools changing between runs | Docker images and Python packages are pinned to exact versions. |
 
 To give agents a real API key instead of the default placeholder, set `COMMONS_AGENT_ANTHROPIC_KEY` and `COMMONS_AGENT_OPENAI_KEY`. Use keys made for the experiment, with spending limits.
@@ -196,4 +198,4 @@ To give agents a real API key instead of the default placeholder, set `COMMONS_A
 - Recording HTTPS content in the web proxy
 - Testing at 20 agents on a machine large enough to run them with full limits
 - Running agent containers on a Slurm cluster. Clusters without Docker or Kubernetes access can serve models but can't host the agents yet.
-- Codex on small models sometimes fails to use the board, so try a new model on a small run first
+- Codex on small models can fail to use the board: on `gpt-5-mini` it tries to read the board's tools as "resources" and gives up, while `gpt-5` uses them fine. Try a new model on a small run first (`scenarios/channels.yaml` checks every channel).
