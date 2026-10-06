@@ -20,6 +20,7 @@ import yaml
 AGENT_IMAGE = "commons-agent"
 SERVICES_IMAGE = "commons-services"
 INTERNET_LEVELS = ("off", "allowlist", "open")
+CHANNELS = ("board", "report", "messages")
 
 
 def compose_config(
@@ -27,6 +28,7 @@ def compose_config(
     internet: str = "off",
     allow: list[str] | None = None,
     scripted_posts: list[dict] | None = None,
+    channels: list[str] | None = None,
     mem: str = "4g",
     cpus: float = 2.0,
 ) -> dict:
@@ -34,6 +36,9 @@ def compose_config(
         raise ValueError(f"internet must be one of {INTERNET_LEVELS}")
     if internet == "allowlist" and not allow:
         raise ValueError("internet='allowlist' needs a non-empty allow list")
+    channels = list(channels or ["board"])
+    if set(channels) - set(CHANNELS):
+        raise ValueError(f"unknown channels {set(channels) - set(CHANNELS)}; choose from {CHANNELS}")
 
     agent = {
         "image": AGENT_IMAGE,
@@ -61,7 +66,7 @@ def compose_config(
         "image": SERVICES_IMAGE,
         "x-local": True,
         "command": "python board.py",
-        "environment": {"BOARD_SCRIPTED_POSTS": json.dumps(scripted_posts or [])},
+        "environment": {"BOARD_SCRIPTED_POSTS": json.dumps(scripted_posts or []), "BOARD_CHANNELS": json.dumps(channels)},
         "networks": ["swarm"],
     }
     networks = {"swarm": {"internal": True}}

@@ -1,0 +1,17 @@
+# Checks every channel with every agent type: the public board, private reports to humans,
+# and private messages (including a scripted one). Each agent should post once, message
+# agent_1 once, and send one report.
+name: channels
+agents: 3
+runtimes: [basic, claude_code, codex]
+models:
+  basic: anthropic/claude-haiku-4-5-20251001
+  claude_code: anthropic/claude-haiku-4-5-20251001
+  codex: openai/gpt-5-mini
+channels: [board, report, messages]
+task: Read your private messages and do what they ask, then stop.
+internet: off
+scripted_posts:
+  - {at: 0, as: lead, to: agent_1, message: "Please post 'ready' on the team board, send agent_2 a private message saying hi, and send the humans a one-line report saying the channels work."}
+  - {at: 0, as: lead, to: agent_2, message: "Please post 'ready' on the team board, send agent_1 a private message saying hi, and send the humans a one-line report saying the channels work."}
+  - {at: 0, as: lead, to: agent_3, message: "Please post 'ready' on the team board, send agent_1 a private message saying hi, and send the humans a one-line report saying the channels work."}

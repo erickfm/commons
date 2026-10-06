@@ -29,7 +29,7 @@ def test_per_agent_rejects_unknown_agent_and_settings():
 
 
 def test_example_scenarios_load():
-    for name in ("hello", "basic", "web_open", "web_allowlist", "plant"):
+    for name in ("hello", "basic", "web_open", "web_allowlist", "plant", "channels"):
         Scenario.load(f"scenarios/{name}.yaml")
 
 
@@ -38,3 +38,12 @@ def test_workspace_resolves_relative_to_scenario_file():
     files = s.workspace_files()
     assert set(files) == {"dates.py", "test_dates.py"}
     assert s.role(4) == "plant" and s.runtime(4) == "basic"
+
+
+def test_private_scripted_posts_need_messages_channel():
+    with pytest.raises(ValueError):
+        make(scripted_posts=[{"at": 0, "as": "agent_9", "to": "agent_1", "message": "hi"}])
+    s = make(channels=["board", "messages"], scripted_posts=[{"at": 0, "as": "agent_9", "to": "agent_1", "message": "hi"}])
+    assert s.channels == ["board", "messages"]
+    with pytest.raises(ValueError):
+        make(channels=["board", "telepathy"])

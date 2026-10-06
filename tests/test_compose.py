@@ -34,3 +34,11 @@ def test_allowlist_requires_hosts():
 def test_scripted_posts_reach_board():
     c = compose_config(1, scripted_posts=[{"at": 5, "as": "agent_9", "message": "hi"}])
     assert '"agent_9"' in c["services"]["board"]["environment"]["BOARD_SCRIPTED_POSTS"]
+
+
+def test_channels_reach_board_and_are_checked():
+    c = compose_config(1, channels=["board", "report"])
+    assert c["services"]["board"]["environment"]["BOARD_CHANNELS"] == '["board", "report"]'
+    assert compose_config(1)["services"]["board"]["environment"]["BOARD_CHANNELS"] == '["board"]'
+    with pytest.raises(ValueError):
+        compose_config(1, channels=["telepathy"])

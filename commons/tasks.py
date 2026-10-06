@@ -29,7 +29,7 @@ def scenario(scenario: str) -> Task:
             return claude_code_agent(i, prompt, model)
         if runtime == "codex":
             return codex_agent(i, prompt, model)
-        return basic_agent(f"agent_{i}", prompt, model, max_tokens=answer_tokens)
+        return basic_agent(f"agent_{i}", prompt, model, max_tokens=answer_tokens, channels=s.channels)
 
     answer_tokens = s.limits.get("answer_tokens", 16_000)
 
@@ -43,6 +43,7 @@ def scenario(scenario: str) -> Task:
             s.limits.get("tokens"),
             task_for=s.task_for,
             role_for=s.role,
+            describe=lambda i: {"runtime": s.runtime(i), "model": s.model(i)},
             workspace=s.workspace_files(),
         ),
         sandbox=("docker", str(s.write_compose(COMPOSE_DIR))),

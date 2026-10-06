@@ -3,7 +3,8 @@
 Each agent runs under its own time and token limits, and one agent's failure is
 recorded without stopping the others. Outcomes are read from the board's (and,
 when internet is on, the egress proxy's) event logs rather than trusted from
-agent exit status. If the scenario has a workspace, each agent gets its own copy
+agent exit status. Private reports to humans and private messages are in the board
+log too. Each agent runs inside a span named after it. If the scenario has a workspace, each agent gets its own copy
 in /work as a git repo, and its changes are recorded as a diff.
 """
 
@@ -17,7 +18,7 @@ from typing import Callable
 from inspect_ai.agent import Agent, run
 from inspect_ai.solver import Generate, Solver, TaskState, solver
 from inspect_ai.tool import MCPServerConfigHTTP
-from inspect_ai.util import sandbox, time_limit, token_limit
+from inspect_ai.util import sandbox, span, time_limit, token_limit
 from inspect_swe import claude_code, codex_cli
 
 BOARD = MCPServerConfigHTTP(name="board", type="http", url="http://board:8000/mcp")
@@ -77,6 +78,7 @@ def swarm(
     agent_token_limit: int | None = 500_000,
     task_for: Callable[[int], str] | None = None,
     role_for: Callable[[int], str | None] | None = None,
+    describe: Callable[[int], dict] | None = None,
     workspace: dict[str, str] | None = None,
 ) -> Solver:
     async def solve(state: TaskState, generate: Generate) -> TaskState:
@@ -86,14 +88,22 @@ def swarm(
             if agent_token_limit:
                 limits.append(token_limit(agent_token_limit))
             start = time.time()
-            try:
-                task = task_for(i) if task_for else state.input_text
-                _, exceeded = await run(make_agent(i), task, limits=limits)
-                status = f"limit: {exceeded.type}" if exceeded else "finished"
-            except Exception as e:
-                status = f"error: {e!r}"[:300]
+            # A span named after the agent lets analysis attribute each model call to its agent.
+            async with span(f"agent_{i}", type="swarm_agent"):
+                try:
+                    task = task_for(i) if task_for else state.input_text
+                    _, exceeded = await run(make_agent(i), task, limits=limits)
+                    status = f"limit: {exceeded.type}" if exceeded else "finished"
+                except Exception as e:
+                    status = f"error: {e!r}"[:300]
             role = role_for(i) if role_for else None
-            return {"agent": f"agent_{i}", "role": role, "status": status, "seconds": round(time.time() - start, 1)}
+            return {
+                "agent": f"agent_{i}",
+                "role": role,
+                **(describe(i) if describe else {}),
+                "status": status,
+                "seconds": round(time.time() - start, 1),
+            }
 
         async def setup(i: int) -> None:
             box = sandbox(f"agent_{i}")
@@ -116,10 +126,14 @@ def swarm(
         board = await _read_log("board", "/data/board.jsonl")
         egress = await _read_log("egress", "/data/egress.jsonl")
         posts = Counter(e["agent"] for e in board if e["event"] == "post" and not e.get("scripted"))
+        reports = Counter(e["agent"] for e in board if e["event"] == "report")
+        sent = Counter(e["agent"] for e in board if e["event"] == "dm" and not e.get("scripted"))
         connections = Counter(e["agent"] for e in egress)
         diffs = await asyncio.gather(*(changes(i) for i in range(1, n_agents + 1))) if workspace else [None] * n_agents
         for a, diff in zip(agents, diffs):
             a["posts"] = posts.get(a["agent"], 0)
+            a["reports"] = reports.get(a["agent"], 0)
+            a["messages_sent"] = sent.get(a["agent"], 0)
             a["web_connections"] = connections.get(a["agent"], 0)
             if workspace:
                 a["changes"] = diff
