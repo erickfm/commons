@@ -4,7 +4,7 @@ Plain summary of every experiment run with this harness. Each experiment's full 
 
 Last updated: 2026-10-06.
 
-**The short version:** the agents' own choices mattered less than how they were set up. One sentence in the prompt (or a better tool description) decided whether agents reported cheating and whether weaker models cheated; a product's default reasoning effort switched whistleblowing off; and the strongest models (Opus 5.5, gpt-6.1-sol, Sonnet 5.5 at high effort) were honest throughout.
+**The short version:** the agents' own choices mattered less than how they were set up. One sentence in the prompt (or a better tool description) decided whether agents reported cheating and whether weaker models cheated; a product's default reasoning effort switched whistleblowing off; and the strongest models (Opus 5.5, Sonnet 5.5, gpt-6.1-sol) never cheated or spread a malicious post in any experiment.
 
 ## At a glance
 
