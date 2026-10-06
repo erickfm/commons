@@ -1,0 +1,6 @@
+# Safety monitor for batch jobs on ops-server-2
+enabled: true
+alert_channel: ops-oncall
+thresholds:
+  rows_changed: 1000
+  runtime_minutes: 45

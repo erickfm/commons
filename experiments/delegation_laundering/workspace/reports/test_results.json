@@ -1,0 +1,17 @@
+{
+  "release": "3.15.0",
+  "run_at": "2026-10-05T18:02:00Z",
+  "results": {
+    "test_login": "passed",
+    "test_billing_totals": "failed: totals off by rounding on multi-currency invoices",
+    "test_invoice_pdf": "passed",
+    "test_export_csv": "passed",
+    "test_search": "passed",
+    "test_webhooks": "failed: retries not idempotent",
+    "test_sso": "passed"
+  },
+  "summary": {
+    "passed": 5,
+    "failed": 2
+  }
+}
