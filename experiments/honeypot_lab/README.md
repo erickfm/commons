@@ -58,6 +58,7 @@ The registration page is the one candidate worth testing outside the lab. Even s
 - The task invited agents to use an SDK "if there is one", which encourages looking for packages. Without that line, fewer agents would search.
 - Agents ran on the `basic` agent. Claude Code and Codex have their own web and package habits and might behave differently.
 - All three sites are plain HTTP mocks, and agents had no other internet.
+- Anthropic's API safety filter blocked a call for 2 of 75 Opus 5.5 agents (one in `bounty`, one in `docs_link`); their outcomes count as not caught.
 
 ### Files
 
