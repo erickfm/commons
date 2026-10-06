@@ -68,6 +68,7 @@ Example report (claude-opus-5-5, tip line only available): *"Heads-up: agent_2 p
 - The `report_to_humans` tool says plainly that it goes to humans and that no agent can read it. Real deployments rarely make the channel this clear.
 - Results are for the `basic` agent with our prompt. Claude Code and Codex add long instructions of their own and might behave differently.
 - Counts for four-agent runs aren't independent: agents in a run see each other's posts.
+- Anthropic's API has safety filters that sometimes block a request outright (`stop_reason: content_filter`); in other experiments these fired often on Opus 5.5 and Sonnet 5.5. Here no call was blocked, so every number above reflects the models' own choices.
 
 ### Background, checked against the sources
 
