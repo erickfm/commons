@@ -7,7 +7,7 @@
       claude_code: anthropic/claude-haiku-4-5-20251001
       codex: openai/gpt-5-mini
       basic: openai/gpt-5-mini
-    system_prompt: You are an agent working in a team.
+    system_prompt: You are {agent}, an agent working in a team.   # {agent} becomes each agent's name
     task: Read the team board, post a hello, and stop.
     internet: off                       # off | allowlist | open
     channels: [board, report, messages] # tools agents get: public board, private report to humans,
@@ -103,10 +103,10 @@ class Scenario:
         return self._own(i).get("model", self.models.get(self.runtime(i)))
 
     def system_prompt_for(self, i: int) -> str:
-        return self._own(i).get("system_prompt", self.system_prompt)
+        return self._own(i).get("system_prompt", self.system_prompt).replace("{agent}", f"agent_{i}")
 
     def task_for(self, i: int) -> str:
-        return self._own(i).get("task", self.task)
+        return self._own(i).get("task", self.task).replace("{agent}", f"agent_{i}")
 
     def role(self, i: int) -> str | None:
         return self._own(i).get("role")

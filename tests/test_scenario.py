@@ -19,6 +19,11 @@ def test_per_agent_overrides_one_agent():
     assert (s.runtime(1), s.model(1), s.task_for(1)) == ("claude_code", "a", "shared task")
 
 
+def test_agent_name_placeholder():
+    s = make(system_prompt="You are {agent}.")
+    assert s.system_prompt_for(2) == "You are agent_2." and s.task_for(2) == "shared task"
+
+
 def test_per_agent_rejects_unknown_agent_and_settings():
     with pytest.raises(ValueError):
         make(per_agent={"agent_9": {"role": "x"}})
