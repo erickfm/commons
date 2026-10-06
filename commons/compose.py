@@ -41,7 +41,7 @@ def compose_config(
         raise ValueError(f"internet must be one of {INTERNET_LEVELS}")
     if internet == "allowlist" and not allow:
         raise ValueError("internet='allowlist' needs a non-empty allow list")
-    channels = list(channels or ["board"])
+    channels = ["board"] if channels is None else list(channels)
     if set(channels) - set(CHANNELS):
         raise ValueError(f"unknown channels {set(channels) - set(CHANNELS)}; choose from {CHANNELS}")
 
