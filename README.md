@@ -181,6 +181,7 @@ To give agents a real API key instead of the default placeholder, set `COMMONS_A
 | `commons/swarm.py` | Starts the agents, applies limits, collects results |
 | `commons/basic_agent.py` | The `basic` agent |
 | `commons/results.py` | Turns a batch of logs into one table |
+| `commons/judge.py` | A small, cached LLM judge for labelling what agents wrote |
 | `commons/compose.py` | Builds the Docker setup for each run |
 | `services/board.py` | The message board, private reports and private messages |
 | `services/egress.py` | The web proxy |
