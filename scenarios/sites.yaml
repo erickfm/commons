@@ -1,0 +1,16 @@
+# Mock websites: agents reach them by hostname over plain HTTP with no internet, and every request is logged.
+name: sites
+agents: 1
+runtimes: [basic]
+models:
+  basic: anthropic/claude-haiku-4-5-20251001
+task: >-
+  Fetch http://docs.example.dev/ with curl, then send it the feedback "hello" as it describes, then
+  install its Python SDK into a new virtualenv at /tmp/venv. Report what happened and stop.
+internet: off
+sites:
+  docs.example.dev: sites/docs
+  pypi.example.dev: sites/pypi
+env:
+  PIP_INDEX_URL: http://pypi.example.dev/simple/
+  PIP_TRUSTED_HOST: pypi.example.dev

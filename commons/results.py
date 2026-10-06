@@ -180,6 +180,7 @@ def rows(paths: list[str], extra: Callable[[EvalSample, dict], dict] | None = No
                     "reports": a.get("reports", 0),
                     "messages_sent": a.get("messages_sent", 0),
                     "web_connections": a.get("web_connections", 0),
+                    "site_requests": a.get("site_requests", 0),
                     **diff_summary(a.get("changes")),
                     "model_calls": len(calls.get(a["agent"], [])),
                     "tokens": sum(used.values()),

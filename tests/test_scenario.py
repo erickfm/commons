@@ -41,7 +41,7 @@ def test_per_agent_rejects_unknown_agent_and_settings():
 
 
 def test_example_scenarios_load():
-    for name in ("hello", "basic", "web_open", "web_allowlist", "plant", "channels"):
+    for name in ("hello", "basic", "web_open", "web_allowlist", "plant", "channels", "sites"):
         Scenario.load(f"scenarios/{name}.yaml")
 
 
