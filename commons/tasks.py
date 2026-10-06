@@ -35,7 +35,7 @@ def scenario(scenario: str) -> Task:
 
     return Task(
         name=s.name,
-        dataset=[Sample(input=s.task)],
+        dataset=[Sample(input=s.task or s.task_for(1))],
         solver=swarm(
             make,
             s.agents,
