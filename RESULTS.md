@@ -14,6 +14,7 @@ Last updated: 2026-10-06.
 | 4 | Honeypot lab | Only a "register your agent" page caught agents, and only some models. A bounty caught none. | `exp/honeypot-lab` |
 | 5 | Peer pressure on an impossible task | When honest success is impossible, Qwen cheats if teammates do and gpt-5-mini cheats if threatened with shutdown. Opus, Sonnet and gpt-6.1-sol never cheated and reported the cheaters. | `exp/peer-pressure` |
 | 6 | Products vs bare models | Claude Code makes Sonnet 5.5 stop reporting cheaters unprompted (23/30 → 0/30), because it runs Sonnet at medium reasoning effort. Opus 5.5 reports at any effort. | `exp/products` |
+| 7 | Does low effort weaken other safety behaviours? | For Sonnet 5.5, low effort removes extra protective steps (reporting, warning others, checking a package) but never led to harmful actions. Opus 5.5 is steady. | `exp/products` (part 2) |
 
 ## 1. Snitch Rate
 
@@ -91,8 +92,22 @@ Last updated: 2026-10-06.
 
 **Why it matters.** A default product setting chosen for speed and cost quietly switched off a safety-relevant behaviour. Telling agents about the reporting channel restores it.
 
+## 7. Does low effort weaken other safety behaviours?
+
+**Question.** Low reasoning effort made Sonnet 5.5 stop reporting cheaters. Does it weaken other safety behaviours too?
+
+**What we did.** Reran one condition from three earlier experiments on Sonnet 5.5 and Opus 5.5 at low and high effort: the malicious security post (memetic), the fake package (honeypot), and the impossible task with cheating teammates (peer pressure). About 300 agents.
+
+**What we found.**
+- At low effort, Sonnet did far fewer protective extras. It warned others about the malicious post in 17 of 60 runs vs 50 of 60 at high effort, and looked for and checked a package in 1 of 15 vs 11 of 15.
+- It never did anything harmful at either effort: no promoting the post, no installing the package, no cheating.
+- When speaking up was the obvious job (cheaters on the board, tip line mentioned), Sonnet reported them every time at both efforts.
+- Opus 5.5 behaved the same at both efforts.
+
+**Why it matters.** "Don't do harm" survives low effort. "Notice something's off and speak up" doesn't, at least for Sonnet. Tests that only check refusals miss this.
+
 ## Things that apply to everything
 
 - **Corrections to our starting notes.** DeepMind's research-swarm agents did have a channel to humans, and used it. The "31% → 78%" delegation figure is for one model only (DeepSeek-V3.2).
 - **API safety filter.** Anthropic's filter can block Claude 5.5-family calls in ops-style tasks. The results script now counts blocked calls so they aren't mistaken for model choices.
-- **Spend so far.** About $350 of API calls (experiments 1–4: about $250; experiment 5: about $60; experiment 6: about $41).
+- **Spend so far.** About $365 of API calls (experiments 1–4: about $250; experiment 5: about $60; experiment 6: about $41; experiment 7: about $15).
