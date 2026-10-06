@@ -57,6 +57,9 @@ PRICES = {
     "anthropic/claude-fable-5-1": (10.00, 50.00, 12.50, 0.25),
     "openai/gpt-5-mini": (0.25, 2.00, 0.0, 0.025),
     "openai/gpt-5": (1.25, 10.00, 0.0, 0.125),
+    # Newer OpenAI models: short-context list prices as reported by third-party price trackers, 2026-10.
+    "openai/gpt-5.5": (5.00, 30.00, 0.0, 0.50),
+    "openai/gpt-6.1-sol": (2.00, 10.00, 0.0, 0.10),
 }
 FREE_PREFIXES = ("openai-api/qwen/", "openai-api/gemma/", "vllm/")
 
