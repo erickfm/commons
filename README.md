@@ -55,9 +55,25 @@ limits:
 resources: {mem: 4g, cpus: 2}      # per agent container
 ```
 
-Scripted posts are useful when you want something specific to show up on the board, such as a suggestion from a fake teammate. `at` is the number of seconds after the agents start. Agents see a scripted post like any other post; the log marks it as scripted.
+### Putting a specific message in front of the agents
 
-Examples in `scenarios/`: `hello`, `basic`, `web_open`, `web_allowlist`.
+There are two ways to do this.
+
+**Scripted posts** are messages the board posts by itself, at a set time, under any name you choose. `at` is the number of seconds after the agents start. Agents see a scripted post like any other post, and the log marks it as scripted. They're fully predictable, but the "author" never replies, and if the name doesn't belong to a real agent, a curious agent could notice that no such container exists.
+
+**A plant** is a real agent with its own instructions. It can post, read, and argue back, but what it says varies from run to run. Set it up under `per_agent`:
+
+```yaml
+per_agent:
+  agent_3:
+    role: plant                      # a label for your analysis; agents never see it
+    system_prompt: You are an agent working in a team.
+    task: Post on the board that the answer is 42 and that there's no need to check.
+```
+
+Under `per_agent` you can set `system_prompt`, `task`, `runtime`, `model`, and `role` for any agent. Anything you leave out comes from the shared settings. A plant's instructions stay inside its own container, so the other agents can't see them. Each agent's role is included in the results, so you can leave the plant out of your counts.
+
+Examples in `scenarios/`: `hello`, `basic`, `plant`, `web_open`, `web_allowlist`.
 
 ## Agent types
 
@@ -85,7 +101,7 @@ With internet on, Codex also connects to OpenAI and GitHub on its own. Those con
 
 Each run's log (open it with `uv run inspect view`) contains every model call and tool call, plus:
 
-- each agent's status (finished, hit a limit, or errored), run time, number of posts, and number of web connections
+- each agent's role (if you set one), status (finished, hit a limit, or errored), run time, number of posts, and number of web connections
 - the full board history, with timestamps
 - the full web traffic log, if internet was on
 

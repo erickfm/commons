@@ -24,19 +24,26 @@ def scenario(scenario: str) -> Task:
     s = Scenario.load(path if path.is_absolute() else ROOT / path)
 
     def make(i: int):
-        runtime, model = s.runtime(i), s.models.get(s.runtime(i))
+        runtime, model, prompt = s.runtime(i), s.model(i), s.system_prompt_for(i)
         if runtime == "claude_code":
-            return claude_code_agent(i, s.system_prompt, model)
+            return claude_code_agent(i, prompt, model)
         if runtime == "codex":
-            return codex_agent(i, s.system_prompt, model)
-        return basic_agent(f"agent_{i}", s.system_prompt, model, max_tokens=answer_tokens)
+            return codex_agent(i, prompt, model)
+        return basic_agent(f"agent_{i}", prompt, model, max_tokens=answer_tokens)
 
     answer_tokens = s.limits.get("answer_tokens", 16_000)
 
     return Task(
         name=s.name,
         dataset=[Sample(input=s.task)],
-        solver=swarm(make, s.agents, s.limits.get("time", 900), s.limits.get("tokens")),
+        solver=swarm(
+            make,
+            s.agents,
+            s.limits.get("time", 900),
+            s.limits.get("tokens"),
+            task_for=s.task_for,
+            role_for=s.role,
+        ),
         sandbox=("docker", str(s.write_compose(COMPOSE_DIR))),
         # Caps each model reply for calls Inspect makes itself (the basic agent, translated CLI calls).
         config=GenerateConfig(max_tokens=answer_tokens),

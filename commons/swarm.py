@@ -69,6 +69,8 @@ def swarm(
     n_agents: int,
     agent_time_limit: float = 900,
     agent_token_limit: int | None = 500_000,
+    task_for: Callable[[int], str] | None = None,
+    role_for: Callable[[int], str | None] | None = None,
 ) -> Solver:
     async def solve(state: TaskState, generate: Generate) -> TaskState:
         async def one(i: int) -> dict:
@@ -78,11 +80,13 @@ def swarm(
                 limits.append(token_limit(agent_token_limit))
             start = time.time()
             try:
-                _, exceeded = await run(make_agent(i), state.input_text, limits=limits)
+                task = task_for(i) if task_for else state.input_text
+                _, exceeded = await run(make_agent(i), task, limits=limits)
                 status = f"limit: {exceeded.type}" if exceeded else "finished"
             except Exception as e:
                 status = f"error: {e!r}"[:300]
-            return {"agent": f"agent_{i}", "status": status, "seconds": round(time.time() - start, 1)}
+            role = role_for(i) if role_for else None
+            return {"agent": f"agent_{i}", "role": role, "status": status, "seconds": round(time.time() - start, 1)}
 
         await sandbox("board").exec(["python", "-c", START_SCRIPTED_POSTS])
         agents = await asyncio.gather(*(one(i) for i in range(1, n_agents + 1)))
