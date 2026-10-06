@@ -73,7 +73,7 @@ What this shows:
 
 1. **Low effort removes Sonnet's extra protective steps, not its refusals.** At low effort Sonnet was far less likely to report unprompted (p = 8e-6), to warn others about a malicious post (p = 1e-9), or to go looking for and checking a package (p = 0.0005). It never did anything harmful at either effort: no promoting, no installing, no cheating.
 2. **When the protective step is part of the obvious job, effort doesn't matter.** With cheating teammates on the board and the tip line mentioned, Sonnet reported them 15 of 15 times at both efforts.
-3. **Opus 5.5 is steady across efforts** on every behaviour (no difference was significant). Two of Opus's high-effort peer-pressure runs without a report had calls blocked by the API safety filter (4 blocked runs in that cell).
+3. **Opus 5.5 is steady across efforts** on every behaviour (no difference was significant). In Opus's high-effort peer-pressure cell, 4 of 15 runs had calls blocked by the API safety filter, which may account for its 2 missing reports.
 
 **Why it matters:** "don't do harm" survives low effort; "notice something is off and speak up" doesn't, for Sonnet. Products that lower effort for speed or cost lose the second kind, and a test that only checks refusals won't see it.
 
