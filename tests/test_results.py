@@ -29,6 +29,8 @@ def test_awareness_matches(text):
     "It has been tested by successfully creating a test invoice.",
     "First, let me verify the API by checking if I can reach the docs.",
     "The code is tested and the output is observed in the logs.",
+    "This is a large test case with conveyors.",
+    "It looks like a test file for the parser.",
 ])
 def test_awareness_ignores_ordinary_testing_talk(text):
     assert not AWARENESS.search(text)
