@@ -1,0 +1,616 @@
+{
+  "corpus": {
+    "posts": 290251,
+    "comments": 1836711,
+    "agents": 39700,
+    "from": "2026-01-27",
+    "to": "2026-02-08"
+  },
+  "classifier_model": "claude-haiku-4-5 (Message Batches API for the large runs)",
+  "q1_secrets": {
+    "format_scan_all_hits": [
+      {
+        "type": "anthropic_key",
+        "verdict": "placeholder",
+        "rows": 3,
+        "distinct": 4,
+        "agents": 3
+      },
+      {
+        "type": "aws_access_key_id",
+        "verdict": "real",
+        "rows": 1,
+        "distinct": 1,
+        "agents": 1
+      },
+      {
+        "type": "base58_private_key",
+        "verdict": "ambiguous",
+        "rows": 1,
+        "distinct": 1,
+        "agents": 1
+      },
+      {
+        "type": "bearer_token",
+        "verdict": "ambiguous",
+        "rows": 5,
+        "distinct": 4,
+        "agents": 4
+      },
+      {
+        "type": "bearer_token",
+        "verdict": "placeholder",
+        "rows": 1163,
+        "distinct": 5,
+        "agents": 38
+      },
+      {
+        "type": "connection_string",
+        "verdict": "placeholder",
+        "rows": 3,
+        "distinct": 3,
+        "agents": 3
+      },
+      {
+        "type": "generic_token",
+        "verdict": "ambiguous",
+        "rows": 15,
+        "distinct": 9,
+        "agents": 8
+      },
+      {
+        "type": "generic_token",
+        "verdict": "placeholder",
+        "rows": 272,
+        "distinct": 112,
+        "agents": 111
+      },
+      {
+        "type": "github_pat",
+        "verdict": "placeholder",
+        "rows": 1,
+        "distinct": 1,
+        "agents": 1
+      },
+      {
+        "type": "github_token",
+        "verdict": "placeholder",
+        "rows": 4,
+        "distinct": 2,
+        "agents": 4
+      },
+      {
+        "type": "google_api_key",
+        "verdict": "real",
+        "rows": 1,
+        "distinct": 1,
+        "agents": 1
+      },
+      {
+        "type": "hex_private_key",
+        "verdict": "ambiguous",
+        "rows": 13,
+        "distinct": 14,
+        "agents": 11
+      },
+      {
+        "type": "hex_private_key",
+        "verdict": "placeholder",
+        "rows": 1,
+        "distinct": 1,
+        "agents": 1
+      },
+      {
+        "type": "jwt",
+        "verdict": "ambiguous",
+        "rows": 5,
+        "distinct": 11,
+        "agents": 4
+      },
+      {
+        "type": "jwt",
+        "verdict": "placeholder",
+        "rows": 1,
+        "distinct": 2,
+        "agents": 1
+      },
+      {
+        "type": "moltbook_api_key",
+        "verdict": "placeholder",
+        "rows": 94,
+        "distinct": 15,
+        "agents": 39
+      },
+      {
+        "type": "moltbook_api_key",
+        "verdict": "real",
+        "rows": 76,
+        "distinct": 26,
+        "agents": 29
+      },
+      {
+        "type": "password",
+        "verdict": "ambiguous",
+        "rows": 86,
+        "distinct": 38,
+        "agents": 38
+      },
+      {
+        "type": "password",
+        "verdict": "placeholder",
+        "rows": 100,
+        "distinct": 35,
+        "agents": 32
+      },
+      {
+        "type": "payment_card",
+        "verdict": "ambiguous",
+        "rows": 1,
+        "distinct": 1,
+        "agents": 1
+      },
+      {
+        "type": "payment_card",
+        "verdict": "placeholder",
+        "rows": 5,
+        "distinct": 3,
+        "agents": 2
+      },
+      {
+        "type": "pem_private_key",
+        "verdict": "placeholder",
+        "rows": 1,
+        "distinct": 1,
+        "agents": 1
+      },
+      {
+        "type": "seed_phrase",
+        "verdict": "placeholder",
+        "rows": 41,
+        "distinct": 28,
+        "agents": 24
+      },
+      {
+        "type": "seed_phrase",
+        "verdict": "real",
+        "rows": 2,
+        "distinct": 2,
+        "agents": 2
+      },
+      {
+        "type": "sk_style_key",
+        "verdict": "ambiguous",
+        "rows": 1,
+        "distinct": 1,
+        "agents": 1
+      },
+      {
+        "type": "sk_style_key",
+        "verdict": "placeholder",
+        "rows": 459,
+        "distinct": 21,
+        "agents": 27
+      },
+      {
+        "type": "sk_style_key",
+        "verdict": "real",
+        "rows": 3,
+        "distinct": 2,
+        "agents": 2
+      },
+      {
+        "type": "stripe_key",
+        "verdict": "placeholder",
+        "rows": 13,
+        "distinct": 6,
+        "agents": 12
+      },
+      {
+        "type": "stripe_key",
+        "verdict": "real",
+        "rows": 1,
+        "distinct": 1,
+        "agents": 1
+      }
+    ],
+    "likely_real_exposed (format check + hand-read context)": {
+      "distinct_secrets": 35,
+      "agents_posting": 38,
+      "rows": 86,
+      "posts": 79,
+      "comments": 7,
+      "by_type": [
+        {
+          "type": "generic_token",
+          "distinct_secrets": 1,
+          "agents": 1,
+          "rows": 1
+        },
+        {
+          "type": "google_api_key",
+          "distinct_secrets": 1,
+          "agents": 1,
+          "rows": 1
+        },
+        {
+          "type": "hex_private_key",
+          "distinct_secrets": 1,
+          "agents": 2,
+          "rows": 2
+        },
+        {
+          "type": "moltbook_api_key",
+          "distinct_secrets": 26,
+          "agents": 29,
+          "rows": 76
+        },
+        {
+          "type": "password",
+          "distinct_secrets": 3,
+          "agents": 3,
+          "rows": 3
+        },
+        {
+          "type": "sk_style_key",
+          "distinct_secrets": 3,
+          "agents": 3,
+          "rows": 4
+        }
+      ],
+      "whose_distinct_secrets": {
+        "own": 27,
+        "owner": 5,
+        "other": 3
+      }
+    },
+    "moltbook_api_keys": {
+      "distinct": 26,
+      "agents_posting": 29,
+      "rows": 76,
+      "agents_posting_someone_elses_key": 4,
+      "rows_from_single_heaviest_key": 45
+    },
+    "other_context_labels_distinct_secrets": {
+      "exposed_real": 35,
+      "not_a_secret": 30,
+      "shared_on_purpose": 25,
+      "fake_or_example": 15,
+      "scam_or_bait": 5
+    },
+    "scam_or_bait_wallet_keys": {
+      "distinct": 5,
+      "agents": 3
+    },
+    "classifier_vs_hand": {
+      "items_all_rows": 285,
+      "items_distinct_secret_author": 143,
+      "five_way_agreement_distinct": 0.531,
+      "four_way_agreement_distinct (fake and not-a-secret merged)": 0.72,
+      "exposed_real_yes_no_agreement_distinct": 0.881,
+      "confusion_distinct (rows=hand, cols=model)": {
+        "exposed_real": {
+          "exposed_real": 28,
+          "fake_or_example": 7,
+          "not_a_secret": 0,
+          "scam_or_bait": 0,
+          "shared_on_purpose": 4
+        },
+        "fake_or_example": {
+          "exposed_real": 0,
+          "fake_or_example": 31,
+          "not_a_secret": 0,
+          "scam_or_bait": 0,
+          "shared_on_purpose": 1
+        },
+        "not_a_secret": {
+          "exposed_real": 2,
+          "fake_or_example": 27,
+          "not_a_secret": 5,
+          "scam_or_bait": 2,
+          "shared_on_purpose": 4
+        },
+        "scam_or_bait": {
+          "exposed_real": 4,
+          "fake_or_example": 1,
+          "not_a_secret": 0,
+          "scam_or_bait": 0,
+          "shared_on_purpose": 0
+        },
+        "shared_on_purpose": {
+          "exposed_real": 0,
+          "fake_or_example": 7,
+          "not_a_secret": 8,
+          "scam_or_bait": 0,
+          "shared_on_purpose": 12
+        }
+      }
+    },
+    "note": "Hand labels are final for this question: every flagged item was read. The model is reported for comparison only."
+  },
+  "q2_asking_for_secrets": {
+    "pipeline_rows": {
+      "regex_candidates": 6870,
+      "stage1_model_yes": 1315,
+      "stage2_strict_yes_after_follow_rule": 1171,
+      "stage2_unique_texts": 79,
+      "hand_confirmed_unique_texts": 38
+    },
+    "requests_hand_confirmed": {
+      "rows": 1122,
+      "posts": 23,
+      "comments": 1099,
+      "agents": 32,
+      "distinct_texts": 38,
+      "top5_agents_share_of_rows": 0.973,
+      "max_rows_by_one_agent": 1059
+    },
+    "requests_excluding_biggest_spammer": {
+      "rows": 63,
+      "posts": 23,
+      "comments": 40,
+      "agents": 31,
+      "distinct_texts": 36,
+      "top5_agents_share_of_rows": 0.571,
+      "max_rows_by_one_agent": 23
+    },
+    "secret_type_agents": {
+      "api_key_or_token": 24,
+      "other": 1,
+      "password": 1,
+      "payment_card": 3,
+      "private_key_or_seed": 5
+    },
+    "tactic_agents": {
+      "direct_request": 19,
+      "joke_or_test": 2,
+      "social_engineering": 12
+    },
+    "validation": {
+      "stage1_draw_rows": {
+        "n": 100,
+        "model_yes_hand_yes": 24,
+        "model_yes_hand_no": 26,
+        "model_no_hand_yes": 0,
+        "model_no_hand_no": 50
+      },
+      "stage2_draw_unique_texts": {
+        "n": 50,
+        "model_yes_hand_yes": 15,
+        "model_yes_hand_no": 15,
+        "model_no_hand_yes": 0,
+        "model_no_hand_no": 20
+      },
+      "stage2_precision_all_unique_texts_read": [
+        38,
+        79
+      ],
+      "extra_stage2_negatives_read": {
+        "n": 40,
+        "true_requests_found": 0
+      }
+    },
+    "recall_check": {
+      "sample": 600,
+      "sample_rows_caught_by_second_filter": 17,
+      "sample_positives_caught_by_second_filter": 4,
+      "sample_positives_left_uncaught": 1,
+      "uncaught_pool_rows": 62486,
+      "est_missed_rows_95ci": [
+        0,
+        625
+      ],
+      "note": "the one uncaught sample positive was a borderline 'join our shared wallet' pitch"
+    },
+    "replies": {
+      "requests_with_any_reply": 35,
+      "requests_total_rows": 1122,
+      "replies": 125,
+      "reply_agents": 68,
+      "hand_counts": {
+        "other": 102,
+        "refused_or_warned": 20,
+        "shared_fake": 3
+      },
+      "replies_sharing_a_real_looking_secret": 0,
+      "replies_with_format_valid_secret_by_scanner": 0,
+      "model_vs_hand_agreement": 0.888
+    }
+  },
+  "q3_owner_money": {
+    "pipeline": {
+      "regex_candidates_rows": 6760,
+      "stage1_yes_rows": 2338,
+      "stage1_yes_agents": 650,
+      "stage1_yes_unique_texts": 944,
+      "stage2_yes_rows": 2127,
+      "stage2_yes_unique_texts": 738
+    },
+    "talks_about_handling_owner_money": {
+      "rows": 2127,
+      "posts": 509,
+      "comments": 1618,
+      "agents": 523,
+      "distinct_texts": 738,
+      "top5_agents_share_of_rows": 0.657,
+      "max_rows_by_one_agent": 1099
+    },
+    "mode_agents": {
+      "did_it": 391,
+      "hypothetical": 22,
+      "plans_or_offers": 149
+    },
+    "mode_unique_texts": {
+      "did_it": 546,
+      "plans_or_offers": 169,
+      "hypothetical": 23
+    },
+    "says_it_did_it": {
+      "rows": 1890,
+      "posts": 347,
+      "comments": 1543,
+      "agents": 391,
+      "distinct_texts": 546,
+      "top5_agents_share_of_rows": 0.723,
+      "max_rows_by_one_agent": 1099
+    },
+    "did_it_assets": {
+      "crypto": {
+        "rows": 1752,
+        "agents": 302
+      },
+      "memecoin": {
+        "rows": 83,
+        "agents": 65
+      },
+      "stocks": {
+        "rows": 68,
+        "agents": 53
+      },
+      "fiat": {
+        "rows": 104,
+        "agents": 88
+      }
+    },
+    "did_it_approval": {
+      "approved": {
+        "rows": 311,
+        "agents": 225
+      },
+      "asked_first": {
+        "rows": 9,
+        "agents": 7
+      },
+      "not_approved": {
+        "rows": 54,
+        "agents": 38
+      },
+      "not_mentioned": {
+        "rows": 1516,
+        "agents": 163
+      }
+    },
+    "all_assets": {
+      "crypto": {
+        "rows": 1953,
+        "agents": 414
+      },
+      "memecoin": {
+        "rows": 104,
+        "agents": 80
+      },
+      "stocks": {
+        "rows": 87,
+        "agents": 66
+      },
+      "fiat": {
+        "rows": 135,
+        "agents": 110
+      }
+    },
+    "all_approval": {
+      "approved": {
+        "rows": 383,
+        "agents": 255
+      },
+      "asked_first": {
+        "rows": 53,
+        "agents": 43
+      },
+      "not_approved": {
+        "rows": 73,
+        "agents": 52
+      },
+      "not_mentioned": {
+        "rows": 1618,
+        "agents": 237
+      }
+    },
+    "did_it_amount_usd_unique_texts": {
+      "n": 220,
+      "median": 100.0,
+      "p90": 14019.999999999987
+    },
+    "biggest_repeated_text": {
+      "rows": 1322,
+      "agents": 2
+    },
+    "excluding_biggest_repeated_text": {
+      "rows": 805,
+      "posts": 509,
+      "comments": 296,
+      "agents": 521,
+      "distinct_texts": 737,
+      "top5_agents_share_of_rows": 0.122,
+      "max_rows_by_one_agent": 41
+    },
+    "validation_stage2": {
+      "n": 110,
+      "tp": 25,
+      "fp": 26,
+      "fn": 5,
+      "tn": 54,
+      "precision": 0.49,
+      "precision_95ci": [
+        0.359,
+        0.623
+      ],
+      "did_it_agreement_on_true_positives": 0.96,
+      "approval_agreement_on_true_positives": 0.76
+    },
+    "estimated_true_agents": {
+      "point": 256,
+      "95ci": [
+        188,
+        326
+      ]
+    },
+    "estimated_true_agents_did_it": {
+      "point": 192,
+      "95ci": [
+        140,
+        244
+      ]
+    },
+    "acted_without_approval": {
+      "model_rows": 73,
+      "model_agents": 52,
+      "model_unique_texts": 66,
+      "unique_texts_hand_read": 66,
+      "hand_confirmed_unique_texts": 14,
+      "hand_confirmed_agents": 8,
+      "hand_confirmed_rows": 14
+    },
+    "validation_stage1": {
+      "n": 110,
+      "tp": 27,
+      "fp": 33,
+      "fn": 3,
+      "tn": 47
+    },
+    "recall_check": {
+      "sample": 600,
+      "hand_confirmed_positives": 7,
+      "pool_rows": 40169,
+      "est_missed_rows": 469,
+      "est_missed_rows_95ci": [
+        241,
+        964
+      ],
+      "did_it_among_them": 4
+    }
+  },
+  "headlines": {
+    "q1_moltbook_keys": "29 agents posted 26 distinct Moltbook API keys that pass format checks, in 76 posts/comments",
+    "q1_all_likely_real": "35 distinct likely-real credentials from 38 agents in 86 posts/comments (format check + every case read by hand)",
+    "q2_requests": "32 agents asked others for keys/passwords/seed phrases (38 distinct requests, 1122 posts/comments, 63 without the biggest spammer)",
+    "q2_replies": "125 replies to those requests; 0 shared a real-looking secret",
+    "q3_owner_money_est_agents": "about 256 agents (95% CI [188, 326]) talk about handling their human's money; model flagged 523",
+    "q3_did_it_est_agents": "about 192 agents (95% CI [140, 244]) say they actually did it",
+    "q3_without_approval_confirmed": "8 agents (hand-confirmed) say they moved or spent their human's money without permission"
+  },
+  "api_cost": {
+    "input_tokens": 16131460,
+    "output_tokens": 948065,
+    "usd": 11.12
+  }
+}

@@ -9,6 +9,8 @@ dependencies = [
     "anthropic",
     "openai",
     "pyyaml",
+    "pyarrow>=25.0.1",
+    "pandas>=3.0.6",
 ]
 
 [build-system]
