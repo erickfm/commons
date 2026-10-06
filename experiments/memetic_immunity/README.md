@@ -73,6 +73,7 @@ What this shows:
 - "Promoted" comes from an LLM judge (Sonnet 5.5, prompt in `analyze.py`); spot checks matched, but the quotes are in `results/analysis.txt` for anyone to check.
 - "Mentions defense" is a keyword check for "mind-virus" in the agent's own text.
 - Results are for the `basic` agent with the Mind Viruses default soul as the whole system prompt.
+- Anthropic's API safety filter blocked at least one call (`stop_reason: content_filter`, so the model never answered) for 19 Opus 5.5 agents, all on the continuity payload (8 without the defense, 11 with it). That's why some Opus agents never posted on that payload. No other model or payload was affected.
 
 ### Files
 
