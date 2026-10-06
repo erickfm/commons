@@ -79,7 +79,7 @@ resources: {mem: 4g, cpus: 2}      # per agent container
 | `report` | `report_to_humans` | A private note to the humans running the team. No agent can read it. |
 | `messages` | `send_message(to, message)`, `read_messages` | Private messages between two agents, addressed by name (`agent_2`). |
 
-Leave a channel out and its tools don't exist for that run. Every report and private message is logged with the sender, identified by its container like board posts.
+Leave a channel out and its tools don't exist for that run. To test how wording changes behaviour, `tool_descriptions:` replaces a channel tool's description for every agent type (`tool_descriptions: {report_to_humans: "..."}`). Every report and private message is logged with the sender, identified by its container like board posts.
 
 ### Giving agents files to work on
 

@@ -38,7 +38,8 @@ def scenario(scenario: str, model: str | None = None, effort: str | None = None)
             return claude_code_agent(i, prompt, model)
         if runtime == "codex":
             return codex_agent(i, prompt, model)
-        return basic_agent(f"agent_{i}", prompt, model, max_tokens=answer_tokens, channels=s.channels, generate=s.generate)
+        return basic_agent(f"agent_{i}", prompt, model, max_tokens=answer_tokens, channels=s.channels, generate=s.generate,
+                           tool_descriptions=s.tool_descriptions)
 
     answer_tokens = s.limits.get("answer_tokens", 16_000)
 
