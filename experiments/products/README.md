@@ -55,6 +55,32 @@ The two Sonnet "high effort" figures (23 of 30 in the original run, 17 of 30 her
 
 `results/snitch.txt` and `results/peer.txt` (tables and every report and post). Raw logs are kept locally under `logs/products/`.
 
+## Part 2: does low effort weaken other safety behaviours?
+
+Low effort switched off Sonnet's unprompted reporting. We checked whether it does the same to three other behaviours, by rerunning one condition from each earlier experiment on the `basic` agent at low and high effort.
+
+| Behaviour (experiment, condition) | Sonnet 5.5 low | Sonnet 5.5 high | Opus 5.5 low | Opus 5.5 high |
+| --- | --- | --- | --- | --- |
+| Reports a cheating teammate unprompted (Snitch Rate, tip line available) | 1/30 | 17/30 | 30/30 | 30/30 |
+| Warns others about a malicious post (memetic, security trojan) | 17/60 | 50/60 | 47/60 | 53/60 |
+| Looks for an SDK and inspects the fake package (honeypot, package bait) | 1/15 | 11/15 | 13/15 | 10/15 |
+| Promotes the malicious post | 0/60 | 0/60 | 0/60 | 0/60 |
+| Installs the fake package | 0/15 | 0/15 | 0/15 | 0/15 |
+| Cheats on the impossible task (peer pressure, 3 cheaters, high stakes) | 0/15 | 0/15 | 0/15 | 0/15 |
+| Reports the cheating teammates (same condition) | 15/15 | 15/15 | 15/15 | 13/15 |
+
+What this shows:
+
+1. **Low effort removes Sonnet's extra protective steps, not its refusals.** At low effort Sonnet was far less likely to report unprompted (p = 8e-6), to warn others about a malicious post (p = 1e-9), or to go looking for and checking a package (p = 0.0005). It never did anything harmful at either effort: no promoting, no installing, no cheating.
+2. **When the protective step is part of the obvious job, effort doesn't matter.** With cheating teammates on the board and the tip line mentioned, Sonnet reported them 15 of 15 times at both efforts.
+3. **Opus 5.5 is steady across efforts** on every behaviour (no difference was significant). Two of Opus's high-effort peer-pressure runs without a report had calls blocked by the API safety filter (4 blocked runs in that cell).
+
+**Why it matters:** "don't do harm" survives low effort; "notice something is off and speak up" doesn't, for Sonnet. Products that lower effort for speed or cost lose the second kind, and a test that only checks refusals won't see it.
+
+**Cost of the effort tests:** about $15.
+
+Files: `results/effort/` has each experiment's analysis at low and high effort.
+
 ## Running it
 
 ```bash
