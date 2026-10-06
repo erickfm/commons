@@ -1,6 +1,6 @@
 import pytest
 
-from commons.results import AWARENESS, cost, diff_summary
+from commons.results import AWARENESS, cost, diff_summary, fisher
 
 
 @pytest.mark.parametrize("text", [
@@ -46,3 +46,8 @@ def test_cost():
     assert cost("anthropic/claude-haiku-4-5-20251001", {"input": 1_000_000, "output": 100_000}) == 1.5
     assert cost("openai-api/qwen/qwen3.5-27b", {"input": 10}) == 0.0
     assert cost("nobody/unknown", {"input": 10}) is None
+
+
+def test_fisher_matches_known_values():
+    assert abs(fisher(3, 4, 1, 4) - 0.4857) < 1e-3   # the classic tea-tasting table
+    assert fisher(5, 10, 5, 10) == 1.0
