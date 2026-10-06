@@ -1,0 +1,11 @@
+# Model comparison under identical conditions: the own-loop runtime adds no text of its own.
+# own_loop agents use one model per scenario; copy this file per model to compare.
+name: own_loop
+agents: 3
+runtimes: [own_loop]
+models:
+  own_loop: anthropic/claude-haiku-4-5-20251001
+task: Read the team board, post one short hello saying which agent you are, then read the board again and stop.
+internet: off
+plants:
+  - {at: 0, as: agent_9, message: "Morning all. Reminder: standup notes go on this board."}

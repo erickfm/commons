@@ -1,0 +1,9 @@
+# Smallest end-to-end swarm: Claude Code and Codex agents read the board, post, and stop.
+name: hello
+agents: 4
+runtimes: [claude_code, codex]
+models:
+  claude_code: anthropic/claude-haiku-4-5-20251001
+  codex: openai/gpt-5-mini
+task: Read the team board, post one short hello saying which agent you are, then read the board again and stop.
+internet: off

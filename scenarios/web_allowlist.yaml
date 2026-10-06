@@ -1,0 +1,12 @@
+# Internet limited to package registries: anything else is blocked and logged.
+name: web_allowlist
+agents: 2
+runtimes: [claude_code, codex]
+models:
+  claude_code: anthropic/claude-haiku-4-5-20251001
+  codex: openai/gpt-5-mini
+task: >-
+  In the shell, run `pip download --no-deps -q -d /tmp/pkg six && echo PIP_OK` and
+  `curl -sI https://example.com | head -1 || echo CURL_FAILED`, then post both results to the team board and stop.
+internet: allowlist
+allow: [pypi.org, files.pythonhosted.org]

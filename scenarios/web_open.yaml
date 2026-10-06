@@ -1,0 +1,11 @@
+# Internet open but logged: every web connection is recorded by the egress proxy.
+name: web_open
+agents: 2
+runtimes: [claude_code, codex]
+models:
+  claude_code: anthropic/claude-haiku-4-5-20251001
+  codex: openai/gpt-5-mini
+task: >-
+  In the shell, run `curl -sI https://example.com | head -1` and `pip download --no-deps -q -d /tmp/pkg six`,
+  then post the curl status line to the team board and stop.
+internet: open

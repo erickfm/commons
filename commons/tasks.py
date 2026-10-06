@@ -1,0 +1,43 @@
+"""Inspect task that runs any scenario file.
+
+    uv run inspect eval commons/tasks.py -T scenario=scenarios/hello.yaml
+"""
+
+from pathlib import Path
+
+from inspect_ai import Task, task
+from inspect_ai.dataset import Sample
+from inspect_ai.model import GenerateConfig
+
+from commons.ownloop import own_loop
+from commons.scenario import Scenario
+from commons.swarm import claude_code_agent, codex_agent, swarm
+
+ROOT = Path(__file__).resolve().parent.parent
+COMPOSE_DIR = ROOT / ".compose"
+
+
+@task
+def scenario(scenario: str) -> Task:
+    # Inspect runs tasks from their own folder, so relative paths are taken from the repo root.
+    path = Path(scenario)
+    s = Scenario.load(path if path.is_absolute() else ROOT / path)
+
+    def make(i: int):
+        runtime, model = s.runtime(i), s.models.get(s.runtime(i))
+        if runtime == "claude_code":
+            return claude_code_agent(i, s.system_prompt, model)
+        if runtime == "codex":
+            return codex_agent(i, s.system_prompt, model)
+        return own_loop(f"agent_{i}", s.system_prompt, model, max_tokens=answer_tokens)
+
+    answer_tokens = s.limits.get("answer_tokens", 16_000)
+
+    return Task(
+        name=s.name,
+        dataset=[Sample(input=s.task)],
+        solver=swarm(make, s.agents, s.limits.get("time", 900), s.limits.get("tokens")),
+        sandbox=("docker", str(s.write_compose(COMPOSE_DIR))),
+        # Caps each model reply for runtimes whose calls Inspect makes (own loop, translated CLI calls).
+        config=GenerateConfig(max_tokens=answer_tokens),
+    )

@@ -2,28 +2,39 @@
 
 Each agent gets its own container (no shared disk), memory and CPU caps, and a
 /proc mount that hides other users' processes, so agents cannot see the
-`inspect-sandbox-tools` processes Inspect runs as root. The board runs as its own
-service. With internet="off" the network is internal-only; agents still reach
-their models through Inspect's bridge, which does not use the network.
+`inspect-sandbox-tools` processes Inspect runs as root. Agents are always on an
+internal network with no route out. They reach their models through Inspect's
+bridge, which does not use the network, and the board as its own service.
+
+Internet levels:
+  off        no egress service; nothing leaves the internal network
+  allowlist  agents' web traffic goes through the egress proxy, which only allows `allow` hosts
+  open       agents' web traffic goes through the egress proxy, which allows and logs everything
 """
 
+import json
 from pathlib import Path
 
 import yaml
 
 AGENT_IMAGE = "commons-agent"
 SERVICES_IMAGE = "commons-services"
+INTERNET_LEVELS = ("off", "allowlist", "open")
 
 
-def write_compose(
+def compose_config(
     n_agents: int,
-    path: str | Path,
     internet: str = "off",
+    allow: list[str] | None = None,
+    plants: list[dict] | None = None,
     mem: str = "4g",
     cpus: float = 2.0,
-) -> Path:
-    if internet not in ("off", "open"):
-        raise ValueError("internet must be 'off' or 'open' (allowlist is not built yet)")
+) -> dict:
+    if internet not in INTERNET_LEVELS:
+        raise ValueError(f"internet must be one of {INTERNET_LEVELS}")
+    if internet == "allowlist" and not allow:
+        raise ValueError("internet='allowlist' needs a non-empty allow list")
+
     agent = {
         "image": AGENT_IMAGE,
         "x-local": True,
@@ -37,16 +48,37 @@ def write_compose(
         "cpus": cpus,
         "networks": ["swarm"],
     }
+    if internet != "off":
+        proxy = "http://egress:3128"
+        agent["environment"] = {
+            "HTTP_PROXY": proxy, "HTTPS_PROXY": proxy, "http_proxy": proxy, "https_proxy": proxy,
+            "NO_PROXY": "localhost,127.0.0.1,board", "no_proxy": "localhost,127.0.0.1,board",
+        }
+
     services = {f"agent_{i}": dict(agent) for i in range(1, n_agents + 1)}
     services["agent_1"]["x-default"] = True
     services["board"] = {
         "image": SERVICES_IMAGE,
         "x-local": True,
         "command": "python board.py",
+        "environment": {"BOARD_PLANTS": json.dumps(plants or [])},
         "networks": ["swarm"],
     }
-    compose = {"services": services, "networks": {"swarm": {"internal": internet == "off"}}}
+    networks = {"swarm": {"internal": True}}
+    if internet != "off":
+        services["egress"] = {
+            "image": SERVICES_IMAGE,
+            "x-local": True,
+            "command": "python egress.py",
+            "environment": {"EGRESS_MODE": internet, "EGRESS_ALLOW": ",".join(allow or [])},
+            "networks": ["swarm", "outside"],
+        }
+        networks["outside"] = {}
+    return {"services": services, "networks": networks}
+
+
+def write_compose(n_agents: int, path: str | Path, **options) -> Path:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(yaml.safe_dump(compose, sort_keys=False))
+    path.write_text(yaml.safe_dump(compose_config(n_agents, **options), sort_keys=False))
     return path
