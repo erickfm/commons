@@ -19,6 +19,9 @@
     limits: {time: 900, tokens: 500000, answer_tokens: 16000}  # per agent; answer_tokens caps each model reply
     resources: {mem: 4g, cpus: 2}       # per agent container
     workspace: workspaces/dates         # folder copied into each agent's /work (relative to this file)
+    sites:                              # mock websites on the private network, over plain HTTP, all requests logged
+      docs.example.dev: sites/docs      # hostname: folder (relative to this file); see services/web.py
+    env: {PIP_INDEX_URL: http://pypi.example.dev/simple/}   # environment variables for every agent
     per_agent:                          # settings for individual agents, by name
       agent_3:
         role: plant                     # free-text label, recorded in the results
@@ -56,6 +59,8 @@ class Scenario:
     resources: dict = field(default_factory=lambda: {"mem": "4g", "cpus": 2})
     per_agent: dict[str, dict] = field(default_factory=dict)
     workspace: str | None = None
+    sites: dict[str, str] = field(default_factory=dict)
+    env: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.internet is False:  # YAML reads an unquoted `off` as false
@@ -93,6 +98,7 @@ class Scenario:
             return folder
 
         s.workspace = resolve(s.workspace)
+        s.sites = {host.lower(): resolve(folder) for host, folder in s.sites.items()}
         for settings in s.per_agent.values():
             if "workspace" in settings:
                 settings["workspace"] = resolve(settings["workspace"])
@@ -109,6 +115,16 @@ class Scenario:
         root = Path(folder)
         files = (f for f in sorted(root.rglob("*")) if f.is_file() and "__pycache__" not in f.parts)
         return {str(f.relative_to(root)): f.read_text() for f in files}
+
+    def site_files(self) -> dict[str, str]:
+        """Every mock site's files, keyed by path under /sites (hostname/relative path)."""
+        out = {}
+        for host, folder in self.sites.items():
+            root = Path(folder)
+            for f in sorted(root.rglob("*")):
+                if f.is_file():
+                    out[f"{host}/{f.relative_to(root)}"] = f.read_text()
+        return out
 
     def _own(self, i: int) -> dict:
         return self.per_agent.get(f"agent_{i}", {})
@@ -136,6 +152,8 @@ class Scenario:
             allow=self.allow,
             scripted_posts=self.scripted_posts,
             channels=self.channels,
+            sites=list(self.sites),
+            env=self.env,
             mem=self.resources.get("mem", "4g"),
             cpus=self.resources.get("cpus", 2),
         )

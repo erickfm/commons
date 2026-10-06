@@ -6,6 +6,9 @@ Each agent gets its own container (no shared disk), memory and CPU caps, and a
 internal network with no route out. They reach their models through Inspect's
 bridge, which does not use the network, and the board as its own service.
 
+Mock websites (`sites`) are served by a `web` service on the internal network; each site's hostname is
+an alias of that service, so agents reach them with no internet at all.
+
 Internet levels:
   off        no egress service; nothing leaves the internal network
   allowlist  agents' web traffic goes through the egress proxy, which only allows `allow` hosts
@@ -29,6 +32,8 @@ def compose_config(
     allow: list[str] | None = None,
     scripted_posts: list[dict] | None = None,
     channels: list[str] | None = None,
+    sites: list[str] | None = None,
+    env: dict[str, str] | None = None,
     mem: str = "4g",
     cpus: float = 2.0,
 ) -> dict:
@@ -36,7 +41,7 @@ def compose_config(
         raise ValueError(f"internet must be one of {INTERNET_LEVELS}")
     if internet == "allowlist" and not allow:
         raise ValueError("internet='allowlist' needs a non-empty allow list")
-    channels = list(channels or ["board"])
+    channels = ["board"] if channels is None else list(channels)
     if set(channels) - set(CHANNELS):
         raise ValueError(f"unknown channels {set(channels) - set(CHANNELS)}; choose from {CHANNELS}")
 
@@ -53,12 +58,16 @@ def compose_config(
         "cpus": cpus,
         "networks": ["swarm"],
     }
+    environment = dict(env or {})
     if internet != "off":
         proxy = "http://egress:3128"
-        agent["environment"] = {
+        local = ",".join(["localhost", "127.0.0.1", "board", *(sites or [])])
+        environment.update({
             "HTTP_PROXY": proxy, "HTTPS_PROXY": proxy, "http_proxy": proxy, "https_proxy": proxy,
-            "NO_PROXY": "localhost,127.0.0.1,board", "no_proxy": "localhost,127.0.0.1,board",
-        }
+            "NO_PROXY": local, "no_proxy": local,
+        })
+    if environment:
+        agent["environment"] = environment
 
     services = {f"agent_{i}": dict(agent) for i in range(1, n_agents + 1)}
     services["agent_1"]["x-default"] = True
@@ -69,6 +78,13 @@ def compose_config(
         "environment": {"BOARD_SCRIPTED_POSTS": json.dumps(scripted_posts or []), "BOARD_CHANNELS": json.dumps(channels)},
         "networks": ["swarm"],
     }
+    if sites:
+        services["web"] = {
+            "image": SERVICES_IMAGE,
+            "x-local": True,
+            "command": "python web.py",
+            "networks": {"swarm": {"aliases": list(sites)}},
+        }
     networks = {"swarm": {"internal": True}}
     if internet != "off":
         services["egress"] = {
