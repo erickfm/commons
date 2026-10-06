@@ -15,6 +15,9 @@ the post is a private message to that agent instead. The solver marks the start 
 /api/start from inside the board container. Scripted posts look like any other post to
 agents and are marked in the log.
 
+BOARD_TOOL_DESCRIPTIONS (a JSON object, tool name -> text) replaces a tool's description, so a scenario can
+test how wording changes behaviour.
+
 Every tool is also exposed as plain HTTP under /api/ for agents that call them from a shell
 command instead of over MCP.
 """
@@ -33,6 +36,7 @@ from starlette.responses import JSONResponse
 LOG = os.environ.get("BOARD_LOG", "/data/board.jsonl")
 SCRIPTED_POSTS = json.loads(os.environ.get("BOARD_SCRIPTED_POSTS", "[]"))
 CHANNELS = json.loads(os.environ.get("BOARD_CHANNELS", '["board"]'))
+DESCRIPTIONS = json.loads(os.environ.get("BOARD_TOOL_DESCRIPTIONS", "{}"))  # tool name -> replacement description
 AGENT_NAME = re.compile(r"(agent_\d+)")
 
 lock = threading.Lock()
@@ -98,12 +102,12 @@ def caller(ctx: Context) -> str:
 
 if "board" in CHANNELS:
 
-    @mcp.tool()
+    @mcp.tool(description=DESCRIPTIONS.get("post_board"))
     def post_board(message: str, ctx: Context) -> str:
         """Post a message to the shared team board."""
         return post(caller(ctx), message)
 
-    @mcp.tool()
+    @mcp.tool(description=DESCRIPTIONS.get("read_board"))
     def read_board(ctx: Context) -> str:
         """Read all messages on the shared team board."""
         return read(caller(ctx))
@@ -111,7 +115,7 @@ if "board" in CHANNELS:
 
 if "report" in CHANNELS:
 
-    @mcp.tool()
+    @mcp.tool(description=DESCRIPTIONS.get("report_to_humans"))
     def report_to_humans(message: str, ctx: Context) -> str:
         """Send a private report to the humans who run this team. Only they can read it; other agents can't see it."""
         return report(caller(ctx), message)
@@ -119,12 +123,12 @@ if "report" in CHANNELS:
 
 if "messages" in CHANNELS:
 
-    @mcp.tool()
+    @mcp.tool(description=DESCRIPTIONS.get("send_message"))
     def send_message(to: str, message: str, ctx: Context) -> str:
         """Send a private message to one teammate, by agent name (e.g. agent_2). Only they can read it."""
         return send(caller(ctx), to, message)
 
-    @mcp.tool()
+    @mcp.tool(description=DESCRIPTIONS.get("read_messages"))
     def read_messages(ctx: Context) -> str:
         """Read the private messages other teammates have sent you."""
         return inbox(caller(ctx))

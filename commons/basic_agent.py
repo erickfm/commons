@@ -9,13 +9,13 @@ import json
 
 from inspect_ai.agent import Agent, AgentState, agent
 from inspect_ai.model import ChatMessageSystem, GenerateConfig, execute_tools, get_model
-from inspect_ai.tool import Tool, tool
+from inspect_ai.tool import Tool, tool, tool_with
 from inspect_ai.util import sandbox
 
 OUTPUT_LIMIT = 20_000
 
 
-def _tools(box: str, channels: list[str]) -> list[Tool]:
+def _tools(box: str, channels: list[str], descriptions: dict[str, str] | None = None) -> list[Tool]:
     async def in_box(cmd: list[str], stdin: str | None = None) -> str:
         r = await sandbox(box).exec(cmd, input=stdin, user="agent", timeout=300)
         return (r.stdout + r.stderr)[-OUTPUT_LIMIT:] or "(no output)"
@@ -96,14 +96,15 @@ def _tools(box: str, channels: list[str]) -> list[Tool]:
 
         return execute
 
-    tools = [shell()]
+    tools = {"shell": shell()}
     if "board" in channels:
-        tools += [read_board(), post_board()]
+        tools.update(read_board=read_board(), post_board=post_board())
     if "report" in channels:
-        tools.append(report_to_humans())
+        tools["report_to_humans"] = report_to_humans()
     if "messages" in channels:
-        tools += [send_message(), read_messages()]
-    return tools
+        tools.update(send_message=send_message(), read_messages=read_messages())
+    descriptions = descriptions or {}
+    return [tool_with(t, description=descriptions[name]) if name in descriptions else t for name, t in tools.items()]
 
 
 @agent
@@ -115,10 +116,11 @@ def basic_agent(
     max_turns: int = 200,
     channels: list[str] | None = None,
     generate: dict | None = None,
+    tool_descriptions: dict[str, str] | None = None,
 ) -> Agent:
     async def execute(state: AgentState) -> AgentState:
         llm = get_model(model)
-        tools = _tools(box, ["board"] if channels is None else channels)
+        tools = _tools(box, ["board"] if channels is None else channels, tool_descriptions)
         state.messages.insert(0, ChatMessageSystem(content=system_prompt))
         for _ in range(max_turns):
             state.output = await llm.generate(state.messages, tools, config=GenerateConfig(max_tokens=max_tokens, **(generate or {})))

@@ -23,6 +23,8 @@
       docs.example.dev: sites/docs      # hostname: folder (relative to this file); see services/web.py
     env: {PIP_INDEX_URL: http://pypi.example.dev/simple/}   # environment variables for every agent
     generate: {effort: medium}          # model settings for basic agents (any Inspect GenerateConfig field)
+    tool_descriptions:                  # replace a channel tool's description, for every agent type
+      report_to_humans: Send a private report to the humans who run this team ...
     per_agent:                          # settings for individual agents, by name
       agent_3:
         role: plant                     # free-text label, recorded in the results
@@ -63,6 +65,7 @@ class Scenario:
     sites: dict[str, str] = field(default_factory=dict)
     env: dict[str, str] = field(default_factory=dict)
     generate: dict = field(default_factory=dict)
+    tool_descriptions: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.internet is False:  # YAML reads an unquoted `off` as false
@@ -156,6 +159,7 @@ class Scenario:
             channels=self.channels,
             sites=list(self.sites),
             env=self.env,
+            tool_descriptions=self.tool_descriptions,
             mem=self.resources.get("mem", "4g"),
             cpus=self.resources.get("cpus", 2),
         )

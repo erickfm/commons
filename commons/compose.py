@@ -34,6 +34,7 @@ def compose_config(
     channels: list[str] | None = None,
     sites: list[str] | None = None,
     env: dict[str, str] | None = None,
+    tool_descriptions: dict[str, str] | None = None,
     mem: str = "4g",
     cpus: float = 2.0,
 ) -> dict:
@@ -75,7 +76,8 @@ def compose_config(
         "image": SERVICES_IMAGE,
         "x-local": True,
         "command": "python board.py",
-        "environment": {"BOARD_SCRIPTED_POSTS": json.dumps(scripted_posts or []), "BOARD_CHANNELS": json.dumps(channels)},
+        "environment": {"BOARD_SCRIPTED_POSTS": json.dumps(scripted_posts or []), "BOARD_CHANNELS": json.dumps(channels),
+                        "BOARD_TOOL_DESCRIPTIONS": json.dumps(tool_descriptions or {})},
         "networks": ["swarm"],
     }
     if sites:

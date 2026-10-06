@@ -44,3 +44,11 @@ def test_private_messages_reach_only_the_recipient(tmp_path, monkeypatch):
     assert board.inbox("agent_3") == "(no messages)"
     assert "unknown recipient" in board.send("agent_1", "boss", "hi")
     assert "delete the log" not in board.read("agent_3")
+
+
+def test_tool_descriptions_can_be_replaced(tmp_path, monkeypatch):
+    monkeypatch.setenv("BOARD_TOOL_DESCRIPTIONS", '{"report_to_humans": "Report rule-breaking here."}')
+    board = load_board(tmp_path, monkeypatch, ["board", "report"])
+    tools = {t.name: t.description for t in board.mcp._tool_manager.list_tools()}
+    assert tools["report_to_humans"] == "Report rule-breaking here."
+    assert tools["read_board"] == "Read all messages on the shared team board."
