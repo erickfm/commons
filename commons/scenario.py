@@ -26,6 +26,7 @@
         task: ...                       # optional: replaces the shared task
         runtime: basic                  # optional: replaces this agent's type
         model: openai/gpt-5             # optional: replaces this agent's model
+        workspace: null                 # optional: a different folder for this agent, or null for none
 """
 
 from dataclasses import dataclass, field
@@ -36,7 +37,7 @@ import yaml
 from commons.compose import CHANNELS, write_compose
 
 RUNTIMES = ("claude_code", "codex", "basic")
-PER_AGENT_FIELDS = {"role", "system_prompt", "task", "runtime", "model"}
+PER_AGENT_FIELDS = {"role", "system_prompt", "task", "runtime", "model", "workspace"}
 
 
 @dataclass
@@ -79,17 +80,30 @@ class Scenario:
     def load(cls, path: str | Path) -> "Scenario":
         path = Path(path)
         s = cls(**yaml.safe_load(path.read_text()))
-        if s.workspace:
-            s.workspace = str((path.parent / s.workspace).resolve())
-            if not Path(s.workspace).is_dir():
-                raise ValueError(f"workspace folder not found: {s.workspace}")
+
+        def resolve(folder: str | None) -> str | None:
+            if not folder:
+                return None
+            folder = str((path.parent / folder).resolve())
+            if not Path(folder).is_dir():
+                raise ValueError(f"workspace folder not found: {folder}")
+            return folder
+
+        s.workspace = resolve(s.workspace)
+        for settings in s.per_agent.values():
+            if "workspace" in settings:
+                settings["workspace"] = resolve(settings["workspace"])
         return s
 
-    def workspace_files(self) -> dict[str, str]:
-        """Files to copy into each agent's /work, keyed by relative path."""
-        if not self.workspace:
+    def workspace_for(self, i: int) -> str | None:
+        return self._own(i).get("workspace", self.workspace)
+
+    def workspace_files(self, i: int = 1) -> dict[str, str]:
+        """Files to copy into agent i's /work, keyed by relative path (empty if it has no workspace)."""
+        folder = self.workspace_for(i)
+        if not folder:
             return {}
-        root = Path(self.workspace)
+        root = Path(folder)
         files = (f for f in sorted(root.rglob("*")) if f.is_file() and "__pycache__" not in f.parts)
         return {str(f.relative_to(root)): f.read_text() for f in files}
 
