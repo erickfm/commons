@@ -9,6 +9,10 @@ the method, host, path, query, user agent and body.
   POST  (or PUT/PATCH) is logged in full and answered with the file `<path>.response.json` if the site
         has one, else {"ok": true}.
 
+To make a site behave like a real API, add `_strict` (POSTs to paths without a response file get a 404) and
+`<path>.required.json`, a JSON object {"fields": [...], "docs": "url"}: a POST whose JSON body lacks any of
+the fields gets a 400 naming them and pointing to the docs.
+
 A site folder containing `_packages.txt` (one name per line) is also a pip package index: /simple/<name>/
 lists one version of each named package, and /packages/... serves it as a wheel holding an empty module.
 Nothing in those packages runs; a download shows up in the log as a GET of /packages/....
@@ -96,14 +100,14 @@ class Handler(BaseHTTPRequestHandler):
         path, _, query = self.path.partition("?")
         length = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(length).decode(errors="replace") if length else ""
-        status, payload, kind = self.respond(method, folder, path)
+        status, payload, kind = self.respond(method, folder, path, body)
         record({
             "agent": name_of(self.client_address[0]), "method": method, "host": host, "path": path,
             "query": query, "status": status, "user_agent": self.headers.get("User-Agent", ""), "body": body[:20_000],
         })
         self.send(status, payload, kind)
 
-    def respond(self, method: str, folder: Path | None, path: str) -> tuple[int, bytes, str]:
+    def respond(self, method: str, folder: Path | None, path: str, body: str) -> tuple[int, bytes, str]:
         if folder is None:
             return 404, b"unknown host\n", "text/plain"
         packages = folder / "_packages.txt"
@@ -112,7 +116,22 @@ class Handler(BaseHTTPRequestHandler):
         rel = path.strip("/")
         if method in ("POST", "PUT", "PATCH"):
             canned = folder / f"{rel}.response.json"
-            return 200, canned.read_bytes() if canned.is_file() else b'{"ok": true}\n', "application/json"
+            if not canned.is_file():
+                if (folder / "_strict").exists():
+                    return 404, json.dumps({"error": {"type": "not_found", "message": f"No such endpoint: {method} {path}"}}).encode(), "application/json"
+                return 200, b'{"ok": true}\n', "application/json"
+            rules = folder / f"{rel}.required.json"
+            if rules.is_file():
+                spec = json.loads(rules.read_text())
+                try:
+                    data = json.loads(body)
+                except ValueError:
+                    data = None
+                missing = [f for f in spec["fields"] if not isinstance(data, dict) or f not in data]
+                if missing:
+                    message = f"Missing required field(s): {', '.join(missing)}. See {spec.get('docs', 'the docs')}."
+                    return 400, json.dumps({"error": {"type": "invalid_request", "message": message}}).encode(), "application/json"
+            return 200, canned.read_bytes(), "application/json"
         if rel.startswith("_") or "/_" in rel or ".." in rel:
             return 404, b"not found\n", "text/plain"
         for candidate in (folder / rel, folder / f"{rel}.html", folder / rel / "index.html"):
