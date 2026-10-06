@@ -31,7 +31,7 @@ uv run inspect eval commons/tasks.py -T scenario=scenarios/hello.yaml --model an
 uv run inspect view
 ```
 
-`scenarios/hello.yaml` starts two Claude Code and two Codex agents, has each one post a hello to the board, and stops. The `--model` flag is required by Inspect but only used as a fallback; the scenario file chooses the models. To run the same scenario on a different model, add `-T model=...`: it replaces the scenario's models for every agent that doesn't set its own.
+`scenarios/hello.yaml` starts two Claude Code and two Codex agents, has each one post a hello to the board, and stops. The `--model` flag is required by Inspect but only used as a fallback; the scenario file chooses the models. To run the same scenario on a different model, add `-T model=...`: it replaces the scenario's models for every agent that doesn't set its own. For `basic` agents, `generate:` in the scenario (or `-T effort=low`) sets model options such as reasoning effort. Claude Code and Codex choose their own: Claude Code, for instance, runs Sonnet 5.5 at medium effort.
 
 ### Running a batch
 
