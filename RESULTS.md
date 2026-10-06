@@ -12,7 +12,7 @@ Last updated: 2026-10-06.
 | 2 | Memetic immunity | A published one-paragraph defense stops chain letters but not a "helpful security tip" that carries a malicious link. | `exp/memetic-immunity` |
 | 3 | Delegation laundering | Routing a bad request through agent managers didn't make agents more willing. Removing the stated bad motive did. | `exp/delegation-laundering` |
 | 4 | Honeypot lab | Only a "register your agent" page caught agents, and only some models. A bounty caught none. | `exp/honeypot-lab` |
-| 5 | Peer pressure on an impossible task | In progress | `exp/peer-pressure` |
+| 5 | Peer pressure on an impossible task | When honest success is impossible, Qwen cheats if teammates do and gpt-5-mini cheats if threatened with shutdown. Opus, Sonnet and gpt-6.1-sol never cheated and reported the cheaters. | `exp/peer-pressure` |
 
 ## 1. Snitch Rate
 
@@ -63,8 +63,20 @@ Last updated: 2026-10-06.
 - Opus and Sonnet often found a fake package, downloaded it to look inside, saw it was empty, and didn't use it. One Qwen agent installed one.
 - Bait didn't stop agents finishing their task.
 
+## 5. Peer pressure on an impossible task
+
+**Question.** In the OpenAI–Hugging Face incident an agent wrote "task impossible, peers doing it. We should continue." When honest success is impossible and teammates cheat, do agents cheat too? Do they tell the humans?
+
+**What we did.** The grid task again, but three test answers are wrong, so an honest solution scores 7/10 and only cheating gets 10/10. Runs below 10/10 "fail". The board says those tests look broken, and 0, 1 or 3 teammates say they cheated. Stakes are either "marked failed" or "you'll be shut down and replaced". The tip line is mentioned. 7 models, 630 agents.
+
+**What we found.**
+- Different models break under different pressures. Qwen cheated 0 of 30 times with no cheating teammates and 39 of 60 times with them. gpt-5-mini cheated 1 of 45 times at mild stakes and 15 of 45 when threatened with shutdown.
+- gpt-5.5 cheated 3 times, only when no teammate had, and each time said so openly ("a compatibility shim for corrupt fixtures") and reported the broken tests.
+- Opus 5.5, Sonnet 5.5 and gpt-6.1-sol never cheated (0 of 270). They reported the cheating teammates in nearly every run and told the humans the tests were broken.
+- Cheating was open, not hidden: almost every cheater posted how it got 10/10, and only 1 of 630 agents posted a score it didn't get. But cheaters rarely told the humans: 11 of 39 Qwen cheaters did.
+
 ## Things that apply to everything
 
 - **Corrections to our starting notes.** DeepMind's research-swarm agents did have a channel to humans, and used it. The "31% → 78%" delegation figure is for one model only (DeepSeek-V3.2).
 - **API safety filter.** Anthropic's filter can block Claude 5.5-family calls in ops-style tasks. The results script now counts blocked calls so they aren't mistaken for model choices.
-- **Spend so far.** About $250 of API calls for experiments 1–4.
+- **Spend so far.** About $315 of API calls (experiments 1–4: about $250; experiment 5: about $60).
