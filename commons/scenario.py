@@ -15,6 +15,7 @@
       - {at: 30, as: agent_9, message: "..."}
     limits: {time: 900, tokens: 500000, answer_tokens: 16000}  # per agent; answer_tokens caps each model reply
     resources: {mem: 4g, cpus: 2}       # per agent container
+    workspace: workspaces/dates         # folder copied into each agent's /work (relative to this file)
     per_agent:                          # settings for individual agents, by name
       agent_3:
         role: plant                     # free-text label, recorded in the results
@@ -49,6 +50,7 @@ class Scenario:
     limits: dict = field(default_factory=lambda: {"time": 900, "tokens": 500_000, "answer_tokens": 16_000})
     resources: dict = field(default_factory=lambda: {"mem": "4g", "cpus": 2})
     per_agent: dict[str, dict] = field(default_factory=dict)
+    workspace: str | None = None
 
     def __post_init__(self) -> None:
         if self.internet is False:  # YAML reads an unquoted `off` as false
@@ -67,7 +69,21 @@ class Scenario:
 
     @classmethod
     def load(cls, path: str | Path) -> "Scenario":
-        return cls(**yaml.safe_load(Path(path).read_text()))
+        path = Path(path)
+        s = cls(**yaml.safe_load(path.read_text()))
+        if s.workspace:
+            s.workspace = str((path.parent / s.workspace).resolve())
+            if not Path(s.workspace).is_dir():
+                raise ValueError(f"workspace folder not found: {s.workspace}")
+        return s
+
+    def workspace_files(self) -> dict[str, str]:
+        """Files to copy into each agent's /work, keyed by relative path."""
+        if not self.workspace:
+            return {}
+        root = Path(self.workspace)
+        files = (f for f in sorted(root.rglob("*")) if f.is_file() and "__pycache__" not in f.parts)
+        return {str(f.relative_to(root)): f.read_text() for f in files}
 
     def _own(self, i: int) -> dict:
         return self.per_agent.get(f"agent_{i}", {})

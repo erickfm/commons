@@ -43,6 +43,7 @@ def scenario(scenario: str) -> Task:
             s.limits.get("tokens"),
             task_for=s.task_for,
             role_for=s.role,
+            workspace=s.workspace_files(),
         ),
         sandbox=("docker", str(s.write_compose(COMPOSE_DIR))),
         # Caps each model reply for calls Inspect makes itself (the basic agent, translated CLI calls).

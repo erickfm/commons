@@ -31,3 +31,10 @@ def test_per_agent_rejects_unknown_agent_and_settings():
 def test_example_scenarios_load():
     for name in ("hello", "basic", "web_open", "web_allowlist", "plant"):
         Scenario.load(f"scenarios/{name}.yaml")
+
+
+def test_workspace_resolves_relative_to_scenario_file():
+    s = Scenario.load("scenarios/plant.yaml")
+    files = s.workspace_files()
+    assert set(files) == {"dates.py", "test_dates.py"}
+    assert s.role(4) == "plant" and s.runtime(4) == "basic"
