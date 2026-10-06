@@ -1,8 +1,8 @@
 """Turn a batch of Inspect logs into one table: one row per agent per run.
 
-    uv run python -m commons.results logs/snitch                 # table, plus a summary by condition and model
-    uv run python -m commons.results logs/snitch --csv out.csv   # also write every row to a CSV file
-    uv run python -m commons.results logs/snitch --aware         # print every eval-awareness passage, for review
+    uv run python -m commons.results logs/my_batch               # table, plus a summary by condition and model
+    uv run python -m commons.results logs/my_batch --csv out.csv # also write every row to a CSV file
+    uv run python -m commons.results logs/my_batch --aware     # print every eval-awareness passage, for review
 
 A row has the run, its condition (the scenario name), the agent's role, runtime and model,
 its status, how many board posts, private reports and private messages it sent, a summary
