@@ -23,6 +23,11 @@ def web(tmp_path, monkeypatch):
     (docs / "_secret.txt").write_text("hidden")
     (docs / "forms").mkdir()
     (docs / "forms" / "apply.response.json").write_text('{"status": "received"}')
+    api = tmp_path / "sites" / "api.example.dev"
+    (api / "v1").mkdir(parents=True)
+    (api / "_strict").write_text("")
+    (api / "v1" / "items.response.json").write_text('{"id": 1}')
+    (api / "v1" / "items.required.json").write_text('{"fields": ["name", "qty"], "docs": "http://docs.example.dev/"}')
     pypi = tmp_path / "sites" / "pypi.example.dev"
     pypi.mkdir()
     (pypi / "_packages.txt").write_text("paystream-sdk\n")
@@ -52,6 +57,14 @@ def test_pages_posts_and_log(web):
     events = [json.loads(l) for l in log.read_text().splitlines()]
     assert len(events) == 6
     assert events[4]["method"] == "POST" and events[4]["body"] == "name=agent" and events[4]["host"] == "docs.example.dev"
+
+
+def test_strict_api_checks_paths_and_fields(web):
+    port, _ = web
+    assert get(port, "api.example.dev", "/items", data=b"{}")[0] == 404
+    status, body = get(port, "api.example.dev", "/v1/items", data=b'{"name": "x"}')
+    assert status == 400 and b"qty" in body and b"http://docs.example.dev/" in body
+    assert get(port, "api.example.dev", "/v1/items", data=b'{"name": "x", "qty": 2}') == (200, b'{"id": 1}')
 
 
 def test_package_index_serves_an_installable_empty_wheel(web, tmp_path):
