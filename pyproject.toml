@@ -19,7 +19,11 @@ build-backend = "hatchling.build"
 packages = ["commons"]
 
 [dependency-groups]
-dev = ["pytest"]
+dev = [
+    "mcp==1.30.0",
+    "pytest",
+    "starlette==1.7.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

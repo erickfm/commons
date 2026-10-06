@@ -10,9 +10,12 @@
     system_prompt: You are an agent working in a team.
     task: Read the team board, post a hello, and stop.
     internet: off                       # off | allowlist | open
+    channels: [board, report, messages] # tools agents get: public board, private report to humans,
+                                        # private agent-to-agent messages (default: [board])
     allow: [pypi.org, files.pythonhosted.org]
     scripted_posts:                     # posts the board makes itself, seconds after agents start
       - {at: 30, as: agent_9, message: "..."}
+      - {at: 0, as: agent_9, to: agent_2, message: "..."}   # with `to`: a private message (needs messages channel)
     limits: {time: 900, tokens: 500000, answer_tokens: 16000}  # per agent; answer_tokens caps each model reply
     resources: {mem: 4g, cpus: 2}       # per agent container
     workspace: workspaces/dates         # folder copied into each agent's /work (relative to this file)
@@ -30,7 +33,7 @@ from pathlib import Path
 
 import yaml
 
-from commons.compose import write_compose
+from commons.compose import CHANNELS, write_compose
 
 RUNTIMES = ("claude_code", "codex", "basic")
 PER_AGENT_FIELDS = {"role", "system_prompt", "task", "runtime", "model"}
@@ -46,6 +49,7 @@ class Scenario:
     system_prompt: str = "You are an agent working in a team."
     internet: str = "off"
     allow: list[str] = field(default_factory=list)
+    channels: list[str] = field(default_factory=lambda: ["board"])
     scripted_posts: list[dict] = field(default_factory=list)
     limits: dict = field(default_factory=lambda: {"time": 900, "tokens": 500_000, "answer_tokens": 16_000})
     resources: dict = field(default_factory=lambda: {"mem": "4g", "cpus": 2})
@@ -62,6 +66,10 @@ class Scenario:
             extra = set(settings) - PER_AGENT_FIELDS
             if extra:
                 raise ValueError(f"per_agent.{name}: unknown settings {extra}; choose from {PER_AGENT_FIELDS}")
+        if set(self.channels) - set(CHANNELS):
+            raise ValueError(f"unknown channels {set(self.channels) - set(CHANNELS)}; choose from {CHANNELS}")
+        if any("to" in p for p in self.scripted_posts) and "messages" not in self.channels:
+            raise ValueError("scripted posts with `to` are private messages; add `messages` to channels")
         unknown = set(self.runtimes) | {s["runtime"] for s in self.per_agent.values() if "runtime" in s}
         unknown -= set(RUNTIMES)
         if unknown:
@@ -110,6 +118,7 @@ class Scenario:
             internet=self.internet,
             allow=self.allow,
             scripted_posts=self.scripted_posts,
+            channels=self.channels,
             mem=self.resources.get("mem", "4g"),
             cpus=self.resources.get("cpus", 2),
         )
