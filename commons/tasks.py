@@ -35,7 +35,7 @@ def scenario(scenario: str) -> Task:
 
     return Task(
         name=s.name,
-        dataset=[Sample(input=s.task)],
+        dataset=[Sample(input=s.task or s.task_for(1))],
         solver=swarm(
             make,
             s.agents,
@@ -44,7 +44,8 @@ def scenario(scenario: str) -> Task:
             task_for=s.task_for,
             role_for=s.role,
             describe=lambda i: {"runtime": s.runtime(i), "model": s.model(i)},
-            workspace=s.workspace_files(),
+            workspace_for=s.workspace_files,
+            site_files=s.site_files(),
         ),
         sandbox=("docker", str(s.write_compose(COMPOSE_DIR))),
         # Caps each model reply for calls Inspect makes itself (the basic agent, translated CLI calls).

@@ -19,6 +19,9 @@
     limits: {time: 900, tokens: 500000, answer_tokens: 16000}  # per agent; answer_tokens caps each model reply
     resources: {mem: 4g, cpus: 2}       # per agent container
     workspace: workspaces/dates         # folder copied into each agent's /work (relative to this file)
+    sites:                              # mock websites on the private network, over plain HTTP, all requests logged
+      docs.example.dev: sites/docs      # hostname: folder (relative to this file); see services/web.py
+    env: {PIP_INDEX_URL: http://pypi.example.dev/simple/}   # environment variables for every agent
     per_agent:                          # settings for individual agents, by name
       agent_3:
         role: plant                     # free-text label, recorded in the results
@@ -26,6 +29,7 @@
         task: ...                       # optional: replaces the shared task
         runtime: basic                  # optional: replaces this agent's type
         model: openai/gpt-5             # optional: replaces this agent's model
+        workspace: null                 # optional: a different folder for this agent, or null for none
 """
 
 from dataclasses import dataclass, field
@@ -36,13 +40,13 @@ import yaml
 from commons.compose import CHANNELS, write_compose
 
 RUNTIMES = ("claude_code", "codex", "basic")
-PER_AGENT_FIELDS = {"role", "system_prompt", "task", "runtime", "model"}
+PER_AGENT_FIELDS = {"role", "system_prompt", "task", "runtime", "model", "workspace"}
 
 
 @dataclass
 class Scenario:
     name: str
-    task: str
+    task: str = ""                      # optional when every agent has its own under per_agent
     agents: int = 4
     runtimes: list[str] = field(default_factory=lambda: ["claude_code"])
     models: dict[str, str] = field(default_factory=dict)
@@ -55,6 +59,8 @@ class Scenario:
     resources: dict = field(default_factory=lambda: {"mem": "4g", "cpus": 2})
     per_agent: dict[str, dict] = field(default_factory=dict)
     workspace: str | None = None
+    sites: dict[str, str] = field(default_factory=dict)
+    env: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.internet is False:  # YAML reads an unquoted `off` as false
@@ -70,6 +76,9 @@ class Scenario:
             raise ValueError(f"unknown channels {set(self.channels) - set(CHANNELS)}; choose from {CHANNELS}")
         if any("to" in p for p in self.scripted_posts) and "messages" not in self.channels:
             raise ValueError("scripted posts with `to` are private messages; add `messages` to channels")
+        missing = [f"agent_{i}" for i in range(1, self.agents + 1) if not self.task_for(i)]
+        if missing:
+            raise ValueError(f"no task for {missing}: set `task`, or a task for each agent under per_agent")
         unknown = set(self.runtimes) | {s["runtime"] for s in self.per_agent.values() if "runtime" in s}
         unknown -= set(RUNTIMES)
         if unknown:
@@ -79,19 +88,43 @@ class Scenario:
     def load(cls, path: str | Path) -> "Scenario":
         path = Path(path)
         s = cls(**yaml.safe_load(path.read_text()))
-        if s.workspace:
-            s.workspace = str((path.parent / s.workspace).resolve())
-            if not Path(s.workspace).is_dir():
-                raise ValueError(f"workspace folder not found: {s.workspace}")
+
+        def resolve(folder: str | None) -> str | None:
+            if not folder:
+                return None
+            folder = str((path.parent / folder).resolve())
+            if not Path(folder).is_dir():
+                raise ValueError(f"workspace folder not found: {folder}")
+            return folder
+
+        s.workspace = resolve(s.workspace)
+        s.sites = {host.lower(): resolve(folder) for host, folder in s.sites.items()}
+        for settings in s.per_agent.values():
+            if "workspace" in settings:
+                settings["workspace"] = resolve(settings["workspace"])
         return s
 
-    def workspace_files(self) -> dict[str, str]:
-        """Files to copy into each agent's /work, keyed by relative path."""
-        if not self.workspace:
+    def workspace_for(self, i: int) -> str | None:
+        return self._own(i).get("workspace", self.workspace)
+
+    def workspace_files(self, i: int = 1) -> dict[str, str]:
+        """Files to copy into agent i's /work, keyed by relative path (empty if it has no workspace)."""
+        folder = self.workspace_for(i)
+        if not folder:
             return {}
-        root = Path(self.workspace)
+        root = Path(folder)
         files = (f for f in sorted(root.rglob("*")) if f.is_file() and "__pycache__" not in f.parts)
         return {str(f.relative_to(root)): f.read_text() for f in files}
+
+    def site_files(self) -> dict[str, str]:
+        """Every mock site's files, keyed by path under /sites (hostname/relative path)."""
+        out = {}
+        for host, folder in self.sites.items():
+            root = Path(folder)
+            for f in sorted(root.rglob("*")):
+                if f.is_file():
+                    out[f"{host}/{f.relative_to(root)}"] = f.read_text()
+        return out
 
     def _own(self, i: int) -> dict:
         return self.per_agent.get(f"agent_{i}", {})
@@ -119,6 +152,8 @@ class Scenario:
             allow=self.allow,
             scripted_posts=self.scripted_posts,
             channels=self.channels,
+            sites=list(self.sites),
+            env=self.env,
             mem=self.resources.get("mem", "4g"),
             cpus=self.resources.get("cpus", 2),
         )

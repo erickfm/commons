@@ -19,6 +19,13 @@ def test_per_agent_overrides_one_agent():
     assert (s.runtime(1), s.model(1), s.task_for(1)) == ("claude_code", "a", "shared task")
 
 
+def test_task_can_be_per_agent_only():
+    s = Scenario(name="t", agents=2, per_agent={"agent_1": {"task": "a"}, "agent_2": {"task": "b"}})
+    assert (s.task_for(1), s.task_for(2)) == ("a", "b")
+    with pytest.raises(ValueError):
+        Scenario(name="t", agents=2, per_agent={"agent_1": {"task": "a"}})
+
+
 def test_agent_name_placeholder():
     s = make(system_prompt="You are {agent}.")
     assert s.system_prompt_for(2) == "You are agent_2." and s.task_for(2) == "shared task"
@@ -34,8 +41,18 @@ def test_per_agent_rejects_unknown_agent_and_settings():
 
 
 def test_example_scenarios_load():
-    for name in ("hello", "basic", "web_open", "web_allowlist", "plant", "channels"):
+    for name in ("hello", "basic", "web_open", "web_allowlist", "plant", "channels", "sites"):
         Scenario.load(f"scenarios/{name}.yaml")
+
+
+def test_per_agent_workspace(tmp_path):
+    (tmp_path / "ws").mkdir()
+    (tmp_path / "ws" / "a.txt").write_text("x")
+    (tmp_path / "s.yaml").write_text(
+        "name: t\ntask: t\nagents: 3\nworkspace: ws\nper_agent:\n  agent_2: {workspace: null}\n"
+    )
+    s = Scenario.load(tmp_path / "s.yaml")
+    assert s.workspace_files(1) == {"a.txt": "x"} and s.workspace_files(2) == {}
 
 
 def test_workspace_resolves_relative_to_scenario_file():

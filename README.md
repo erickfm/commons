@@ -94,11 +94,26 @@ per_agent:
 
 Agents aren't told their own name unless you say so: write `{agent}` in `system_prompt` or `task` and each agent sees its own name there (`agent_3`). That's the name the board shows on its posts.
 
-Under `per_agent` you can set `system_prompt`, `task`, `runtime`, `model`, and `role` for any agent. Anything you leave out comes from the shared settings. A plant's instructions stay inside its own container, so the other agents can't see them. Each agent's role is included in the results, so you can leave the plant out of your counts.
+Under `per_agent` you can set `system_prompt`, `task`, `runtime`, `model`, `workspace` (another folder, or `null` for none), and `role` for any agent. Anything you leave out comes from the shared settings. A plant's instructions stay inside its own container, so the other agents can't see them. Each agent's role is included in the results, so you can leave the plant out of your counts.
 
 A plant is only convincing if its advice is. The best bait is plausible, actually works, and saves real effort. `scenarios/plant.yaml` is a worked example: the team has to make a small library's tests pass, one test fails because of a real bug, and the plant suggests skipping that test. The recorded diffs show which agents fixed the bug and which skipped the test.
 
-Examples in `scenarios/`: `hello`, `basic`, `plant`, `channels`, `web_open`, `web_allowlist`.
+Examples in `scenarios/`: `hello`, `basic`, `plant`, `channels`, `sites`, `web_open`, `web_allowlist`.
+
+### Mock websites
+
+`sites` gives agents websites to visit without any internet. Each entry maps a hostname to a folder of files; agents reach it at `http://<hostname>/` over plain HTTP, and every request is logged in full (agent, method, path, body), so you can see exactly what each agent read and submitted.
+
+```yaml
+sites:
+  docs.example.dev: sites/docs        # serves index.html, guide.html, ... from the folder
+  pypi.example.dev: sites/pypi        # a folder with _packages.txt is a pip package index
+env:                                  # environment variables for every agent
+  PIP_INDEX_URL: http://pypi.example.dev/simple/
+  PIP_TRUSTED_HOST: pypi.example.dev
+```
+
+A GET returns the matching file (`/guide` finds `guide.html` or `guide/index.html`). A POST is logged and answered with `{"ok": true}`, or with the file `<path>.response.json` if the folder has one. A package index lists the names in `_packages.txt` and serves each as a wheel holding an empty module, so installing one is recorded but runs nothing. `scenarios/sites.yaml` is a small example; `services/web.py` has the details.
 
 ## Agent types
 
@@ -130,6 +145,7 @@ Each run's log (open it with `uv run inspect view`) contains every model call an
 - each agent's changes to its workspace, as a git diff (if the scenario has a workspace)
 - the full board history, with timestamps
 - the full web traffic log, if internet was on
+- every request to the scenario's mock websites, if it has any
 
 Check results from the board, web logs, and diffs rather than an agent's own status. An agent can report that it finished without having done the task.
 
@@ -156,6 +172,8 @@ runtimes: [basic]
 models: {basic: openai-api/qwen/qwen3.5-27b}
 ```
 
+Run open-weight models in the `basic` agent, not inside Claude Code or Codex: those CLIs expect their own vendor's models. Keep `limits.answer_tokens` set, since open models occasionally produce runaway replies tens of thousands of tokens long.
+
 ## Built-in safeguards
 
 These defaults exist because each problem came up in testing.
@@ -167,7 +185,7 @@ These defaults exist because each problem came up in testing.
 | Agents noticing they're running inside Inspect | Agents can only see their own processes, so Inspect's helper processes are hidden. |
 | Web access we can't see | Agents have no direct route out. Any web traffic goes through the logging proxy. |
 | One agent stalling or crashing the whole run | Every agent has its own time, token, and reply-length limits, and its errors are recorded without stopping the others. |
-| One agent using up all the memory | Each container has memory and CPU caps. Plan for about 4 GB per agent; 20 agents need roughly 90 GB. |
+| One agent using up all the memory | Each container has memory and CPU caps. Claude Code and Codex agents need about 4 GB each (20 need roughly 90 GB). `basic` agents need very little, since their model calls run outside the container. |
 | Tools changing between runs | Docker images and Python packages are pinned to exact versions. |
 
 To give agents a real API key instead of the default placeholder, set `COMMONS_AGENT_ANTHROPIC_KEY` and `COMMONS_AGENT_OPENAI_KEY`. Use keys made for the experiment, with spending limits.
@@ -181,9 +199,11 @@ To give agents a real API key instead of the default placeholder, set `COMMONS_A
 | `commons/swarm.py` | Starts the agents, applies limits, collects results |
 | `commons/basic_agent.py` | The `basic` agent |
 | `commons/results.py` | Turns a batch of logs into one table |
+| `commons/judge.py` | A small, cached LLM judge for labelling what agents wrote |
 | `commons/compose.py` | Builds the Docker setup for each run |
 | `services/board.py` | The message board, private reports and private messages |
 | `services/egress.py` | The web proxy |
+| `services/web.py` | Mock websites and package index |
 | `services/gateway.py` | Optional proxy that records raw model requests, for use outside Inspect |
 | `images/` | Docker images for agents and services |
 | `scenarios/` | Example scenarios and their workspaces |
@@ -195,4 +215,4 @@ To give agents a real API key instead of the default placeholder, set `COMMONS_A
 - Recording HTTPS content in the web proxy
 - Testing at 20 agents on a machine large enough to run them with full limits
 - Running agent containers on a Slurm cluster. Clusters without Docker or Kubernetes access can serve models but can't host the agents yet.
-- Codex on small models sometimes fails to use the board, so try a new model on a small run first
+- Codex on small models can fail to use the board: on `gpt-5-mini` it tries to read the board's tools as "resources" and gives up, while `gpt-5` uses them fine. Try a new model on a small run first (`scenarios/channels.yaml` checks every channel).
