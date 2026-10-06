@@ -220,6 +220,19 @@ def summary(table: list[dict]) -> list[dict]:
     return out
 
 
+def fisher(a: int, n: int, b: int, m: int) -> float:
+    """Two-sided Fisher exact test p-value for a successes in n vs b successes in m."""
+    from math import comb
+
+    hits = a + b
+
+    def prob(x: int) -> float:
+        return comb(n, x) * comb(m, hits - x) / comb(n + m, hits)
+
+    observed = prob(a)
+    return min(1.0, sum(prob(x) for x in range(max(0, hits - m), min(n, hits) + 1) if prob(x) <= observed * (1 + 1e-9)))
+
+
 def markdown(table: list[dict], columns: list[str]) -> str:
     lines = ["| " + " | ".join(columns) + " |", "|" + " --- |" * len(columns)]
     for r in table:
