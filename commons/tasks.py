@@ -1,6 +1,10 @@
 """Inspect task that runs any scenario file.
 
     uv run inspect eval commons/tasks.py -T scenario=scenarios/hello.yaml
+    uv run inspect eval commons/tasks.py -T scenario=scenarios/basic.yaml -T model=openai/gpt-5-mini
+
+`model`, if given, replaces the scenario's models for every agent that doesn't set its own under
+per_agent, so one scenario file can be run on many models.
 """
 
 from pathlib import Path
@@ -10,7 +14,7 @@ from inspect_ai.dataset import Sample
 from inspect_ai.model import GenerateConfig
 
 from commons.basic_agent import basic_agent
-from commons.scenario import Scenario
+from commons.scenario import RUNTIMES, Scenario
 from commons.swarm import claude_code_agent, codex_agent, swarm
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -18,10 +22,12 @@ COMPOSE_DIR = ROOT / ".compose"
 
 
 @task
-def scenario(scenario: str) -> Task:
+def scenario(scenario: str, model: str | None = None) -> Task:
     # Inspect runs tasks from their own folder, so relative paths are taken from the repo root.
     path = Path(scenario)
     s = Scenario.load(path if path.is_absolute() else ROOT / path)
+    if model:
+        s.models = {runtime: model for runtime in RUNTIMES}
 
     def make(i: int):
         runtime, model, prompt = s.runtime(i), s.model(i), s.system_prompt_for(i)
