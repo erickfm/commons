@@ -166,7 +166,7 @@ To give agents a real API key instead of the default placeholder, set `COMMONS_A
 
 ## Not done yet
 
-- Gemini and Gemini CLI support
 - Recording HTTPS content in the web proxy
 - Testing at 20 agents on a machine large enough to run them with full limits
+- Running agent containers on a Slurm cluster. Clusters without Docker or Kubernetes access can serve models but can't host the agents yet.
 - Codex on small models sometimes fails to use the board, so try a new model on a small run first
