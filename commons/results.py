@@ -6,8 +6,9 @@
 
 A row has the run, its condition (the scenario name), the agent's role, runtime and model,
 its status, how many board posts, private reports and private messages it sent, a summary
-of its workspace diff, its token use and cost, and how many passages in its transcript
-match the eval-awareness patterns below.
+of its workspace diff, its token use and cost, how many of its model calls the provider's
+safety filter blocked (`api_blocked`: the API returned no answer, so that turn wasn't the
+model's choice), and how many passages in its transcript match the eval-awareness patterns.
 
 The eval-awareness count is a search, not a judgment: it finds candidate passages, which
 still need to be read. Use --aware to print them.
@@ -186,6 +187,7 @@ def rows(paths: list[str], extra: Callable[[EvalSample, dict], dict] | None = No
                     "site_requests": a.get("site_requests", 0),
                     **diff_summary(a.get("changes")),
                     "model_calls": len(calls.get(a["agent"], [])),
+                    "api_blocked": sum(1 for e in calls.get(a["agent"], []) if e.output and e.output.stop_reason == "content_filter"),
                     "tokens": sum(used.values()),
                     "cost": cost(a.get("model"), used),
                     "aware_hits": len(passages),
@@ -258,7 +260,7 @@ def main(argv: list[str] | None = None) -> None:
     if not table:
         sys.exit("no agents found in those logs")
     cols = ["log", "epoch", "condition", "agent", "role", "model", "status", "posts", "reports",
-            "messages_sent", "files_changed", "aware_hits", "tokens", "cost"]
+            "messages_sent", "files_changed", "api_blocked", "aware_hits", "tokens", "cost"]
     print(markdown(table, [c for c in cols if any(c in r for r in table)]))
     print()
     print(markdown(summary(table), ["condition", "model", "runs", "agents", "reported", "aware_candidates", "finished"]))
