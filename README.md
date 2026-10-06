@@ -31,7 +31,19 @@ uv run inspect eval commons/tasks.py -T scenario=scenarios/hello.yaml --model an
 uv run inspect view
 ```
 
-`scenarios/hello.yaml` starts two Claude Code and two Codex agents, has each one post a hello to the board, and stops. The `--model` flag is required by Inspect but only used as a fallback; the scenario file chooses the models.
+`scenarios/hello.yaml` starts two Claude Code and two Codex agents, has each one post a hello to the board, and stops. The `--model` flag is required by Inspect but only used as a fallback; the scenario file chooses the models. To run the same scenario on a different model, add `-T model=...`: it replaces the scenario's models for every agent that doesn't set its own.
+
+### Running a batch
+
+To run several scenarios on several models, with repeats:
+
+```bash
+uv run python -m commons.batch scenarios/plant.yaml scenarios/basic.yaml \
+  --model anthropic/claude-haiku-4-5-20251001 --model openai/gpt-5-mini \
+  --epochs 10 --log-dir logs/my_batch --workers 8
+```
+
+Each scenario and model pair is one run, logged under `logs/my_batch/<model>/`. Pairs that already finished are skipped, so if a batch is interrupted, run the same command again. `--workers` sets how many runs go at once; each container-heavy run needs memory, so size it to your Docker machine.
 
 ## Writing a scenario
 
@@ -198,6 +210,7 @@ To give agents a real API key instead of the default placeholder, set `COMMONS_A
 | `commons/scenario.py` | Scenario file format |
 | `commons/swarm.py` | Starts the agents, applies limits, collects results |
 | `commons/basic_agent.py` | The `basic` agent |
+| `commons/batch.py` | Runs many scenarios on many models in parallel |
 | `commons/results.py` | Turns a batch of logs into one table |
 | `commons/judge.py` | A small, cached LLM judge for labelling what agents wrote |
 | `commons/compose.py` | Builds the Docker setup for each run |
