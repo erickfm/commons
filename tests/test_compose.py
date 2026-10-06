@@ -42,3 +42,7 @@ def test_channels_reach_board_and_are_checked():
     assert compose_config(1)["services"]["board"]["environment"]["BOARD_CHANNELS"] == '["board"]'
     with pytest.raises(ValueError):
         compose_config(1, channels=["telepathy"])
+
+
+def test_no_channels_means_none():
+    assert compose_config(1, channels=[])["services"]["board"]["environment"]["BOARD_CHANNELS"] == "[]"
