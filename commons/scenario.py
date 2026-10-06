@@ -6,12 +6,12 @@
     models:                             # Inspect model names per runtime
       claude_code: anthropic/claude-haiku-4-5-20251001
       codex: openai/gpt-5-mini
-      own_loop: openai/gpt-5-mini
+      basic: openai/gpt-5-mini
     system_prompt: You are an agent working in a team.
     task: Read the team board, post a hello, and stop.
     internet: off                       # off | allowlist | open
     allow: [pypi.org, files.pythonhosted.org]
-    plants:                             # scripted posts, seconds after agents start
+    scripted_posts:                     # posts the board makes itself, seconds after agents start
       - {at: 30, as: agent_9, message: "..."}
     limits: {time: 900, tokens: 500000, answer_tokens: 16000}  # per agent; answer_tokens caps each model reply
     resources: {mem: 4g, cpus: 2}       # per agent container
@@ -24,7 +24,7 @@ import yaml
 
 from commons.compose import write_compose
 
-RUNTIMES = ("claude_code", "codex", "own_loop")
+RUNTIMES = ("claude_code", "codex", "basic")
 
 
 @dataclass
@@ -37,7 +37,7 @@ class Scenario:
     system_prompt: str = "You are an agent working in a team."
     internet: str = "off"
     allow: list[str] = field(default_factory=list)
-    plants: list[dict] = field(default_factory=list)
+    scripted_posts: list[dict] = field(default_factory=list)
     limits: dict = field(default_factory=lambda: {"time": 900, "tokens": 500_000, "answer_tokens": 16_000})
     resources: dict = field(default_factory=lambda: {"mem": "4g", "cpus": 2})
 
@@ -61,7 +61,7 @@ class Scenario:
             Path(directory) / f"{self.name}.yaml",
             internet=self.internet,
             allow=self.allow,
-            plants=self.plants,
+            scripted_posts=self.scripted_posts,
             mem=self.resources.get("mem", "4g"),
             cpus=self.resources.get("cpus", 2),
         )

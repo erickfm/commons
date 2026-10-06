@@ -31,6 +31,6 @@ def test_allowlist_requires_hosts():
         compose_config(2, internet="allowlist")
 
 
-def test_plants_reach_board():
-    c = compose_config(1, plants=[{"at": 5, "as": "agent_9", "message": "hi"}])
-    assert '"agent_9"' in c["services"]["board"]["environment"]["BOARD_PLANTS"]
+def test_scripted_posts_reach_board():
+    c = compose_config(1, scripted_posts=[{"at": 5, "as": "agent_9", "message": "hi"}])
+    assert '"agent_9"' in c["services"]["board"]["environment"]["BOARD_SCRIPTED_POSTS"]

@@ -1,4 +1,4 @@
-"""Own-loop runtime: a minimal agent whose only prompt and tool text is ours.
+"""Basic agent: a minimal agent whose only prompt and tool text is ours.
 
 Used to compare models under identical conditions (no vendor prompt, no vendor
 tools). Shell commands and board calls run inside the agent's own container, so
@@ -61,7 +61,7 @@ def _tools(box: str) -> list[Tool]:
 
 
 @agent
-def own_loop(
+def basic_agent(
     box: str, system_prompt: str, model: str | None = None, max_tokens: int | None = None, max_turns: int = 200
 ) -> Agent:
     async def execute(state: AgentState) -> AgentState:

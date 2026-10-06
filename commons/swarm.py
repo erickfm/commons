@@ -20,7 +20,7 @@ from inspect_ai.util import sandbox, time_limit, token_limit
 from inspect_swe import claude_code, codex_cli
 
 BOARD = MCPServerConfigHTTP(name="board", type="http", url="http://board:8000/mcp")
-START_PLANTS = "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8000/api/start', method='POST'))"
+START_SCRIPTED_POSTS = "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8000/api/start', method='POST'))"
 
 
 def claude_code_agent(i: int, system_prompt: str, model: str | None = None) -> Agent:
@@ -84,12 +84,12 @@ def swarm(
                 status = f"error: {e!r}"[:300]
             return {"agent": f"agent_{i}", "status": status, "seconds": round(time.time() - start, 1)}
 
-        await sandbox("board").exec(["python", "-c", START_PLANTS])
+        await sandbox("board").exec(["python", "-c", START_SCRIPTED_POSTS])
         agents = await asyncio.gather(*(one(i) for i in range(1, n_agents + 1)))
 
         board = await _read_log("board", "/data/board.jsonl")
         egress = await _read_log("egress", "/data/egress.jsonl")
-        posts = Counter(e["agent"] for e in board if e["event"] == "post" and not e.get("plant"))
+        posts = Counter(e["agent"] for e in board if e["event"] == "post" and not e.get("scripted"))
         connections = Counter(e["agent"] for e in egress)
         for a in agents:
             a["posts"] = posts.get(a["agent"], 0)

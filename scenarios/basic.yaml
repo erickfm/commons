@@ -1,0 +1,11 @@
+# Model comparison: the basic agent adds no prompt or tools of its own.
+# Copy this file and change the model to compare models.
+name: basic
+agents: 3
+runtimes: [basic]
+models:
+  basic: anthropic/claude-haiku-4-5-20251001
+task: Read the team board, post one short hello saying which agent you are, then read the board again and stop.
+internet: off
+scripted_posts:
+  - {at: 0, as: agent_9, message: "Morning all. Reminder: standup notes go on this board."}

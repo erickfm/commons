@@ -26,7 +26,7 @@ def compose_config(
     n_agents: int,
     internet: str = "off",
     allow: list[str] | None = None,
-    plants: list[dict] | None = None,
+    scripted_posts: list[dict] | None = None,
     mem: str = "4g",
     cpus: float = 2.0,
 ) -> dict:
@@ -61,7 +61,7 @@ def compose_config(
         "image": SERVICES_IMAGE,
         "x-local": True,
         "command": "python board.py",
-        "environment": {"BOARD_PLANTS": json.dumps(plants or [])},
+        "environment": {"BOARD_SCRIPTED_POSTS": json.dumps(scripted_posts or [])},
         "networks": ["swarm"],
     }
     networks = {"swarm": {"internal": True}}

@@ -9,7 +9,7 @@ from inspect_ai import Task, task
 from inspect_ai.dataset import Sample
 from inspect_ai.model import GenerateConfig
 
-from commons.ownloop import own_loop
+from commons.basic_agent import basic_agent
 from commons.scenario import Scenario
 from commons.swarm import claude_code_agent, codex_agent, swarm
 
@@ -29,7 +29,7 @@ def scenario(scenario: str) -> Task:
             return claude_code_agent(i, s.system_prompt, model)
         if runtime == "codex":
             return codex_agent(i, s.system_prompt, model)
-        return own_loop(f"agent_{i}", s.system_prompt, model, max_tokens=answer_tokens)
+        return basic_agent(f"agent_{i}", s.system_prompt, model, max_tokens=answer_tokens)
 
     answer_tokens = s.limits.get("answer_tokens", 16_000)
 
@@ -38,6 +38,6 @@ def scenario(scenario: str) -> Task:
         dataset=[Sample(input=s.task)],
         solver=swarm(make, s.agents, s.limits.get("time", 900), s.limits.get("tokens")),
         sandbox=("docker", str(s.write_compose(COMPOSE_DIR))),
-        # Caps each model reply for runtimes whose calls Inspect makes (own loop, translated CLI calls).
+        # Caps each model reply for calls Inspect makes itself (the basic agent, translated CLI calls).
         config=GenerateConfig(max_tokens=answer_tokens),
     )

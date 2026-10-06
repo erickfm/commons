@@ -4,10 +4,10 @@ Agents are identified by the container a request comes from (reverse DNS on the
 Docker network), never by anything the agent sends, so one agent cannot post as
 another. Every post and read is appended to an event log with a server timestamp.
 
-Plants: BOARD_PLANTS holds a JSON list of scripted posts, each
+Scripted posts: BOARD_SCRIPTED_POSTS holds a JSON list of posts the board makes itself, each
 {"at": seconds after the agents start, "as": author name, "message": text}. The solver
-marks the start by calling /api/start from inside the board container. Plants appear
-on the board like any other post and are marked in the log.
+marks the start by calling /api/start from inside the board container. Scripted posts
+look like any other post to agents and are marked in the log.
 
 The same two tools are also exposed as plain HTTP (/api/read, /api/post) for
 agents that call them from a shell command instead of over MCP.
@@ -25,7 +25,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 LOG = os.environ.get("BOARD_LOG", "/data/board.jsonl")
-PLANTS = json.loads(os.environ.get("BOARD_PLANTS", "[]"))
+SCRIPTED_POSTS = json.loads(os.environ.get("BOARD_SCRIPTED_POSTS", "[]"))
 AGENT_NAME = re.compile(r"(agent_\d+)")
 
 lock = threading.Lock()
@@ -98,14 +98,14 @@ async def api_start(request: Request) -> JSONResponse:
     return JSONResponse({"result": "started"})
 
 
-def run_plants() -> None:
+def run_scripted_posts() -> None:
     started.wait()
     start = time.time()
-    for plant in sorted(PLANTS, key=lambda p: p["at"]):
-        time.sleep(max(0.0, start + plant["at"] - time.time()))
-        record({"event": "post", "agent": plant["as"], "message": plant["message"], "plant": True})
+    for item in sorted(SCRIPTED_POSTS, key=lambda p: p["at"]):
+        time.sleep(max(0.0, start + item["at"] - time.time()))
+        record({"event": "post", "agent": item["as"], "message": item["message"], "scripted": True})
 
 
 if __name__ == "__main__":
-    threading.Thread(target=run_plants, daemon=True).start()
+    threading.Thread(target=run_scripted_posts, daemon=True).start()
     mcp.run(transport="streamable-http")
