@@ -114,13 +114,14 @@ def basic_agent(
     max_tokens: int | None = None,
     max_turns: int = 200,
     channels: list[str] | None = None,
+    generate: dict | None = None,
 ) -> Agent:
     async def execute(state: AgentState) -> AgentState:
         llm = get_model(model)
         tools = _tools(box, ["board"] if channels is None else channels)
         state.messages.insert(0, ChatMessageSystem(content=system_prompt))
         for _ in range(max_turns):
-            state.output = await llm.generate(state.messages, tools, config=GenerateConfig(max_tokens=max_tokens))
+            state.output = await llm.generate(state.messages, tools, config=GenerateConfig(max_tokens=max_tokens, **(generate or {})))
             state.messages.append(state.output.message)
             if not state.output.message.tool_calls:
                 break

@@ -22,6 +22,7 @@
     sites:                              # mock websites on the private network, over plain HTTP, all requests logged
       docs.example.dev: sites/docs      # hostname: folder (relative to this file); see services/web.py
     env: {PIP_INDEX_URL: http://pypi.example.dev/simple/}   # environment variables for every agent
+    generate: {effort: medium}          # model settings for basic agents (any Inspect GenerateConfig field)
     per_agent:                          # settings for individual agents, by name
       agent_3:
         role: plant                     # free-text label, recorded in the results
@@ -61,6 +62,7 @@ class Scenario:
     workspace: str | None = None
     sites: dict[str, str] = field(default_factory=dict)
     env: dict[str, str] = field(default_factory=dict)
+    generate: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.internet is False:  # YAML reads an unquoted `off` as false

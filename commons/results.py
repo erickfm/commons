@@ -57,6 +57,7 @@ PRICES = {
     "anthropic/claude-haiku-4-5-20251001": (1.00, 5.00, 1.25, 0.10),
     "anthropic/claude-haiku-4-5": (1.00, 5.00, 1.25, 0.10),
     "anthropic/claude-sonnet-4-6": (3.00, 15.00, 3.75, 0.30),
+    "anthropic/claude-opus-4-8": (5.00, 25.00, 6.25, 0.50),
     "anthropic/claude-sonnet-5": (2.00, 10.00, 2.50, 0.20),
     "anthropic/claude-sonnet-5-5": (2.00, 10.00, 2.50, 0.20),
     "anthropic/claude-opus-5-5": (4.00, 20.00, 5.00, 0.20),
