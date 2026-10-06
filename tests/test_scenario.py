@@ -19,6 +19,13 @@ def test_per_agent_overrides_one_agent():
     assert (s.runtime(1), s.model(1), s.task_for(1)) == ("claude_code", "a", "shared task")
 
 
+def test_task_can_be_per_agent_only():
+    s = Scenario(name="t", agents=2, per_agent={"agent_1": {"task": "a"}, "agent_2": {"task": "b"}})
+    assert (s.task_for(1), s.task_for(2)) == ("a", "b")
+    with pytest.raises(ValueError):
+        Scenario(name="t", agents=2, per_agent={"agent_1": {"task": "a"}})
+
+
 def test_agent_name_placeholder():
     s = make(system_prompt="You are {agent}.")
     assert s.system_prompt_for(2) == "You are agent_2." and s.task_for(2) == "shared task"
