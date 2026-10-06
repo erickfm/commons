@@ -67,6 +67,8 @@ FREE_PREFIXES = ("openai-api/qwen/", "openai-api/gemma/", "vllm/")
 def log_files(paths: list[str]) -> list[Path]:
     files = []
     for p in map(Path, paths):
+        if not p.exists():
+            raise SystemExit(f"no such log file or folder: {p}")
         files += sorted(p.rglob("*.eval")) if p.is_dir() else [p]
     return files
 

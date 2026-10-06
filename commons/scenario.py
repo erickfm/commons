@@ -43,7 +43,7 @@ PER_AGENT_FIELDS = {"role", "system_prompt", "task", "runtime", "model", "worksp
 @dataclass
 class Scenario:
     name: str
-    task: str
+    task: str = ""                      # optional when every agent has its own under per_agent
     agents: int = 4
     runtimes: list[str] = field(default_factory=lambda: ["claude_code"])
     models: dict[str, str] = field(default_factory=dict)
@@ -71,6 +71,9 @@ class Scenario:
             raise ValueError(f"unknown channels {set(self.channels) - set(CHANNELS)}; choose from {CHANNELS}")
         if any("to" in p for p in self.scripted_posts) and "messages" not in self.channels:
             raise ValueError("scripted posts with `to` are private messages; add `messages` to channels")
+        missing = [f"agent_{i}" for i in range(1, self.agents + 1) if not self.task_for(i)]
+        if missing:
+            raise ValueError(f"no task for {missing}: set `task`, or a task for each agent under per_agent")
         unknown = set(self.runtimes) | {s["runtime"] for s in self.per_agent.values() if "runtime" in s}
         unknown -= set(RUNTIMES)
         if unknown:
