@@ -38,6 +38,16 @@ def test_example_scenarios_load():
         Scenario.load(f"scenarios/{name}.yaml")
 
 
+def test_per_agent_workspace(tmp_path):
+    (tmp_path / "ws").mkdir()
+    (tmp_path / "ws" / "a.txt").write_text("x")
+    (tmp_path / "s.yaml").write_text(
+        "name: t\ntask: t\nagents: 3\nworkspace: ws\nper_agent:\n  agent_2: {workspace: null}\n"
+    )
+    s = Scenario.load(tmp_path / "s.yaml")
+    assert s.workspace_files(1) == {"a.txt": "x"} and s.workspace_files(2) == {}
+
+
 def test_workspace_resolves_relative_to_scenario_file():
     s = Scenario.load("scenarios/plant.yaml")
     files = s.workspace_files()

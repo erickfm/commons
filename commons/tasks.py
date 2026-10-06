@@ -44,7 +44,7 @@ def scenario(scenario: str) -> Task:
             task_for=s.task_for,
             role_for=s.role,
             describe=lambda i: {"runtime": s.runtime(i), "model": s.model(i)},
-            workspace=s.workspace_files(),
+            workspace_for=s.workspace_files,
         ),
         sandbox=("docker", str(s.write_compose(COMPOSE_DIR))),
         # Caps each model reply for calls Inspect makes itself (the basic agent, translated CLI calls).
