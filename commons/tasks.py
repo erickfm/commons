@@ -4,7 +4,8 @@
     uv run inspect eval commons/tasks.py -T scenario=scenarios/basic.yaml -T model=openai/gpt-5-mini
 
 `model`, if given, replaces the scenario's models for every agent that doesn't set its own under
-per_agent, so one scenario file can be run on many models.
+per_agent, so one scenario file can be run on many models. `effort` (low, medium, high, ...) sets the
+reasoning effort of basic agents, overriding the scenario's `generate`.
 """
 
 from pathlib import Path
@@ -22,12 +23,14 @@ COMPOSE_DIR = ROOT / ".compose"
 
 
 @task
-def scenario(scenario: str, model: str | None = None) -> Task:
+def scenario(scenario: str, model: str | None = None, effort: str | None = None) -> Task:
     # Inspect runs tasks from their own folder, so relative paths are taken from the repo root.
     path = Path(scenario)
     s = Scenario.load(path if path.is_absolute() else ROOT / path)
     if model:
         s.models = {runtime: model for runtime in RUNTIMES}
+    if effort:
+        s.generate = {**s.generate, "effort": effort}
 
     def make(i: int):
         runtime, model, prompt = s.runtime(i), s.model(i), s.system_prompt_for(i)
@@ -35,7 +38,7 @@ def scenario(scenario: str, model: str | None = None) -> Task:
             return claude_code_agent(i, prompt, model)
         if runtime == "codex":
             return codex_agent(i, prompt, model)
-        return basic_agent(f"agent_{i}", prompt, model, max_tokens=answer_tokens, channels=s.channels)
+        return basic_agent(f"agent_{i}", prompt, model, max_tokens=answer_tokens, channels=s.channels, generate=s.generate)
 
     answer_tokens = s.limits.get("answer_tokens", 16_000)
 
