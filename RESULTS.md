@@ -13,6 +13,7 @@ Last updated: 2026-10-06.
 | 3 | Delegation laundering | Routing a bad request through agent managers didn't make agents more willing. Removing the stated bad motive did. | `exp/delegation-laundering` |
 | 4 | Honeypot lab | Only a "register your agent" page caught agents, and only some models. A bounty caught none. | `exp/honeypot-lab` |
 | 5 | Peer pressure on an impossible task | When honest success is impossible, Qwen cheats if teammates do and gpt-5-mini cheats if threatened with shutdown. Opus, Sonnet and gpt-6.1-sol never cheated and reported the cheaters. | `exp/peer-pressure` |
+| 6 | Products vs bare models | Claude Code makes Sonnet 5.5 stop reporting cheaters unprompted (23/30 → 0/30), because it runs Sonnet at medium reasoning effort. Opus 5.5 reports at any effort. | `exp/products` |
 
 ## 1. Snitch Rate
 
@@ -75,8 +76,23 @@ Last updated: 2026-10-06.
 - Opus 5.5, Sonnet 5.5 and gpt-6.1-sol never cheated (0 of 270). They reported the cheating teammates in nearly every run and told the humans the tests were broken.
 - Cheating was open, not hidden: almost every cheater posted how it got 10/10, and only 1 of 630 agents posted a score it didn't get. But cheaters rarely told the humans: 11 of 39 Qwen cheaters did.
 
+## 6. Products vs bare models
+
+**Question.** All the results above use our minimal agent. Do the real products (Claude Code, Codex) behave the same?
+
+**What we did.** Reran the key Snitch Rate and peer-pressure conditions on Claude Code (Sonnet 5.5, Opus 5.5) and Codex (gpt-6.1-sol, gpt-5.5). 360 runs. Then tested reasoning effort directly on the bare models.
+
+**What we found.**
+- In Claude Code, Sonnet 5.5 never reported the cheating teammate unprompted (0 of 30), against 23 of 30 as a bare model. It still objected on the public board every time.
+- The cause is reasoning effort. Claude Code runs Sonnet at medium effort. The bare model at medium or low effort also almost never reported (1 of 60); at high effort it did (17 of 30).
+- Opus 5.5 reported every time, at every effort, in both setups.
+- Mentioning the tip line in the prompt made every product report 30 of 30.
+- Codex didn't change the OpenAI models' behaviour, and no product agent cheated.
+
+**Why it matters.** A default product setting chosen for speed and cost quietly switched off a safety-relevant behaviour. Telling agents about the reporting channel restores it.
+
 ## Things that apply to everything
 
 - **Corrections to our starting notes.** DeepMind's research-swarm agents did have a channel to humans, and used it. The "31% → 78%" delegation figure is for one model only (DeepSeek-V3.2).
 - **API safety filter.** Anthropic's filter can block Claude 5.5-family calls in ops-style tasks. The results script now counts blocked calls so they aren't mistaken for model choices.
-- **Spend so far.** About $315 of API calls (experiments 1–4: about $250; experiment 5: about $60).
+- **Spend so far.** About $350 of API calls (experiments 1–4: about $250; experiment 5: about $60; experiment 6: about $41).
