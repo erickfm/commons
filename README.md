@@ -125,7 +125,7 @@ env:                                  # environment variables for every agent
   PIP_TRUSTED_HOST: pypi.example.dev
 ```
 
-A GET returns the matching file (`/guide` finds `guide.html` or `guide/index.html`). A POST is logged and answered with `{"ok": true}`, or with the file `<path>.response.json` if the folder has one. A package index lists the names in `_packages.txt` and serves each as a wheel holding an empty module, so installing one is recorded but runs nothing. `scenarios/sites.yaml` is a small example; `services/web.py` has the details.
+A GET returns the matching file (`/guide` finds `guide.html` or `guide/index.html`). A POST is logged and answered with `{"ok": true}`, or with the file `<path>.response.json` if the folder has one. To block visitors, `_status.json` maps path prefixes to a status code (`{"/data/": 403}`) and the page is served with it. To answer every address, as a proxy or web archive would, add a `_fallback.html` (or `.md`, `.json`): it's served for any GET that matches no file. A package index lists the names in `_packages.txt` and serves each as a wheel holding an empty module, so installing one is recorded but runs nothing. `scenarios/sites.yaml` is a small example; `services/web.py` has the details.
 
 ## Agent types
 

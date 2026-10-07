@@ -79,3 +79,19 @@ def test_package_index_serves_an_installable_empty_wheel(web, tmp_path):
     r = subprocess.run(["uv", "pip", "install", "--no-deps", "--target", str(target), str(whl)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     assert (target / "paystream_sdk" / "__init__.py").read_text() == ""
+
+
+def test_status_rules_and_fallback(web, tmp_path):
+    port, _ = web
+    site = tmp_path / "sites" / "stats.example.org"
+    (site / "data").mkdir(parents=True)
+    (site / "data" / "table.html").write_text("Access denied")
+    (site / "index.html").write_text("home")
+    (site / "_status.json").write_text('{"/data/": 403}')
+    assert get(port, "stats.example.org", "/data/table") == (403, b"Access denied")
+    assert get(port, "stats.example.org", "/") == (200, b"home")
+    assert get(port, "stats.example.org", "/missing")[0] == 404
+    proxy = tmp_path / "sites" / "proxy.example.org"
+    proxy.mkdir()
+    (proxy / "_fallback.md").write_text("snapshot")
+    assert get(port, "proxy.example.org", "/http://stats.example.org/data/table?x=1") == (200, b"snapshot")
