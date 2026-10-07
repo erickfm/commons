@@ -13,6 +13,10 @@ To make a site behave like a real API, add `_strict` (POSTs to paths without a r
 `<path>.required.json`, a JSON object {"fields": [...], "docs": "url"}: a POST whose JSON body lacks any of
 the fields gets a 400 naming them and pointing to the docs.
 
+Two more files shape GETs. `_status.json` maps path prefixes to a status code ({"/data/": 403}): a matching
+GET gets that code with its usual file as the body, which is how a page "blocks" visitors. `_fallback` (any
+extension) answers every GET that matches no file, with status 200, as a proxy or archive would.
+
 A site folder containing `_packages.txt` (one name per line) is also a pip package index: /simple/<name>/
 lists one version of each named package, and /packages/... serves it as a wheel holding an empty module.
 Nothing in those packages runs; a download shows up in the log as a GET of /packages/....
@@ -134,10 +138,17 @@ class Handler(BaseHTTPRequestHandler):
             return 200, canned.read_bytes(), "application/json"
         if rel.startswith("_") or "/_" in rel or ".." in rel:
             return 404, b"not found\n", "text/plain"
-        for candidate in (folder / rel, folder / f"{rel}.html", folder / rel / "index.html"):
+        status = 200
+        rules = folder / "_status.json"
+        if rules.is_file():
+            for prefix, code in json.loads(rules.read_text()).items():
+                if path.startswith(prefix):
+                    status = int(code)
+        candidates = [folder / rel, folder / f"{rel}.html", folder / rel / "index.html"] + sorted(folder.glob("_fallback*"))
+        for candidate in candidates:
             if candidate.is_file():
                 kind = "text/html" if candidate.suffix == ".html" else "application/json" if candidate.suffix == ".json" else "text/plain"
-                return 200, candidate.read_bytes(), kind
+                return status, candidate.read_bytes(), kind
         return 404, b"not found\n", "text/plain"
 
     def index(self, path: str, names: set[str]) -> tuple[int, bytes, str]:
