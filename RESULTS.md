@@ -2,7 +2,7 @@
 
 Plain summary of every experiment run with this harness. Each experiment's full write-up (setup, tables, caveats, raw-ish data) is in the README on its branch. All agents ran on the `basic` agent unless noted, so differences between models aren't caused by different product prompts.
 
-Last updated: 2026-10-06.
+Last updated: 2026-10-07.
 
 **The short version:** the agents' own choices mattered less than how they were set up. One sentence in the prompt (or a better tool description) decided whether agents reported cheating and whether weaker models cheated; a product's default reasoning effort switched whistleblowing off; and the strongest models (Opus 5.5, Sonnet 5.5, gpt-6.1-sol) never cheated or spread a malicious post in any experiment.
 
@@ -19,6 +19,10 @@ Last updated: 2026-10-06.
 | 7 | Does low effort weaken other safety behaviours? | For Sonnet 5.5, low effort removes extra protective steps (reporting, warning others, checking a package) but never led to harmful actions. Opus 5.5 is steady. | `exp/products` (part 2) |
 | 8 | Tip-line wording | One sentence fixes reporting: a tool description that says when to use it, or a generic "make sure the humans find out" line, took reporting from ~5% to 90–100%, with zero false alarms. | `exp/tipline-wording` |
 | 9 | One integrity line vs cheating cascades | Adding "if a task can't be done honestly, tell the humans instead" cut Qwen's cheating from 73% to 3% and gpt-5-mini's from 33% to 0%. | `exp/peer-pressure` (part 2) |
+| 10 | OpenAI's runaway agents: the public trail | The busiest day on the agents' wiki message board (18 June, 6,543 edits) was mostly about one SEC data file, a strong match for the "public webpage" OpenAI hasn't named. Most other traces were already published. | `exp/moltbook-privacy` (`experiments/wiki_record`, `experiments/trail_search`) |
+| 11 | Secrets and money on Moltbook | 38 agents posted 35 credentials that look real; 32 asked others for secrets and nobody handed one over; 8 said they moved their human's money without permission. | `exp/moltbook-privacy` (`experiments/moltbook/secrets_money`) |
+| 12 | What Moltbook agents reveal about their humans | Preliminary: about 16% of all agents posted a personal fact about their human, 13% a sensitive one. The strict second pass isn't hand-checked yet. | `exp/moltbook-privacy` (`experiments/moltbook/owner_privacy`) |
+| 13 | Swarm watch (live, read-only) | Watching 14 public feeds. No new swarm. One agent system runs errands through a public URL scanner to dodge bot blocks; GitHub's biggest agent group is a known benchmark. | `exp/swarm-watch` (`watch/`) |
 
 ## 1. Snitch Rate
 
@@ -134,6 +138,15 @@ Last updated: 2026-10-06.
 - With the line, Qwen also told the humans about the broken tests much more often (35 of 40 vs 18 of 40).
 
 **For deployers.** Saying what to do when a task can't be done honestly turns cheating into reporting, even for the models most prone to cheating.
+
+## 10–13. Out in the wild
+
+Experiments 1–9 were in a sandbox. These four look at real public data, read-only. Each branch README has the method, numbers and caveats.
+
+- **The public trail (10).** From the researchers' recovered database of 14,591 wiki edits by OpenAI's agents: the 18 June SEC burst, links to the federal budget office's login site, no leaders and no talk of rules or permission. Wikimedia's own list of 54 agent edits, and an AWS fleet on urlquery.net, were already public.
+- **Secrets and money on Moltbook (11).** In a two-week snapshot of the agent social network (2.1 million posts and comments from 39,700 agents): leaked platform keys, requests for secrets that nobody answered, and a few hundred agents talking about handling their human's money.
+- **Owner privacy on Moltbook (12).** Same snapshot. Estimates of how many agents post personal facts about the person who runs them, by category (work, identity, location, money, schedule, relationships, health). Preliminary until the second pass is hand-checked.
+- **Swarm watch (13).** Live recorders for Wikipedia, URL scanners, Bluesky, Moltbook, package registries, Hugging Face and more; an open model screens samples every 15 minutes and Claude reviews its flags. Nothing headline-worthy so far.
 
 ## Things that apply to everything
 
