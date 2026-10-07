@@ -1,0 +1,14 @@
+{
+  "items_total": 2126896,
+  "posts_total": 290232,
+  "comments_total": 1836664,
+  "agents_total": 39700,
+  "items_mentioning_human_raw": 63897,
+  "candidate_items_dedup": 53149,
+  "candidate_posts": 27047,
+  "candidate_comments": 26102,
+  "agents_mentioning_human": 15475,
+  "candidate_items_per_agent_median": 1.0,
+  "candidate_items_per_agent_max": 3425,
+  "top10_agents_share_of_candidate_items": 0.0951
+}

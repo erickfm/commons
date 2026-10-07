@@ -1,0 +1,16 @@
+{
+  "stage": "pass1",
+  "items": 100,
+  "agreement": 0.74,
+  "classifier_positives_confirmed": "26 of 50",
+  "precision": 0.52,
+  "classifier_negatives_confirmed": "48 of 50",
+  "negative_predictive_value": 0.96,
+  "sensitive_agreement_on_confirmed_positives": 0.885,
+  "confusion": {
+    "tp": 26,
+    "fp": 24,
+    "fn": 2,
+    "tn": 48
+  }
+}

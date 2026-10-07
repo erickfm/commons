@@ -1,0 +1,410 @@
+{
+  "corpus": {
+    "items_total": 2126896,
+    "posts_total": 290232,
+    "comments_total": 1836664,
+    "agents_total": 39700,
+    "items_mentioning_human_raw": 63897,
+    "candidate_items_dedup": 53149,
+    "candidate_posts": 27047,
+    "candidate_comments": 26102,
+    "agents_mentioning_human": 15475,
+    "candidate_items_per_agent_median": 1.0,
+    "candidate_items_per_agent_max": 3425,
+    "top10_agents_share_of_candidate_items": 0.0951
+  },
+  "sample": {
+    "agents_sampled": 3000,
+    "agents_mentioning_human_population": 15475,
+    "items_classified_main": 7951,
+    "items_classified_recall_check": 500,
+    "agents_over_cap_15": 90,
+    "parse_failures": 1,
+    "errors": 0,
+    "truncated_texts": 18,
+    "items_constructor_spam_in_sample": 0
+  },
+  "agent_level": {
+    "revealed": {
+      "sampled_agents_positive": 1261,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.4203,
+      "ci95": [
+        0.4046,
+        0.4363
+      ],
+      "est_agents": 6505,
+      "est_agents_ci95": [
+        6261,
+        6751
+      ],
+      "share_of_all_agents": 0.1638,
+      "share_of_all_agents_ci95": [
+        0.1577,
+        0.1701
+      ]
+    },
+    "sensitive": {
+      "sampled_agents_positive": 966,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.322,
+      "ci95": [
+        0.3072,
+        0.3372
+      ],
+      "est_agents": 4983,
+      "est_agents_ci95": [
+        4754,
+        5218
+      ],
+      "share_of_all_agents": 0.1255,
+      "share_of_all_agents_ci95": [
+        0.1197,
+        0.1314
+      ]
+    },
+    "revealed_nonpromo": {
+      "sampled_agents_positive": 1131,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.377,
+      "ci95": [
+        0.3616,
+        0.3927
+      ],
+      "est_agents": 5834,
+      "est_agents_ci95": [
+        5595,
+        6077
+      ],
+      "share_of_all_agents": 0.147,
+      "share_of_all_agents_ci95": [
+        0.1409,
+        0.1531
+      ]
+    },
+    "first_name_only": {
+      "sampled_agents_positive": 694,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.2313,
+      "ci95": [
+        0.2181,
+        0.2452
+      ],
+      "est_agents": 3580,
+      "est_agents_ci95": [
+        3375,
+        3794
+      ],
+      "share_of_all_agents": 0.0902,
+      "share_of_all_agents_ci95": [
+        0.085,
+        0.0956
+      ]
+    },
+    "comms": {
+      "sampled_agents_positive": 123,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.041,
+      "ci95": [
+        0.0351,
+        0.0479
+      ],
+      "est_agents": 634,
+      "est_agents_ci95": [
+        544,
+        741
+      ],
+      "share_of_all_agents": 0.016,
+      "share_of_all_agents_ci95": [
+        0.0137,
+        0.0187
+      ]
+    }
+  },
+  "agent_level_by_category": {
+    "health": {
+      "sampled_agents_positive": 54,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.018,
+      "ci95": [
+        0.0142,
+        0.0229
+      ],
+      "est_agents": 279,
+      "est_agents_ci95": [
+        220,
+        354
+      ],
+      "share_of_all_agents": 0.007,
+      "share_of_all_agents_ci95": [
+        0.0056,
+        0.0089
+      ]
+    },
+    "money": {
+      "sampled_agents_positive": 197,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.0657,
+      "ci95": [
+        0.0582,
+        0.0741
+      ],
+      "est_agents": 1016,
+      "est_agents_ci95": [
+        901,
+        1147
+      ],
+      "share_of_all_agents": 0.0256,
+      "share_of_all_agents_ci95": [
+        0.0227,
+        0.0289
+      ]
+    },
+    "relationships": {
+      "sampled_agents_positive": 89,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.0297,
+      "ci95": [
+        0.0247,
+        0.0357
+      ],
+      "est_agents": 459,
+      "est_agents_ci95": [
+        383,
+        552
+      ],
+      "share_of_all_agents": 0.0116,
+      "share_of_all_agents_ci95": [
+        0.0096,
+        0.0139
+      ]
+    },
+    "location": {
+      "sampled_agents_positive": 363,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.121,
+      "ci95": [
+        0.111,
+        0.1319
+      ],
+      "est_agents": 1872,
+      "est_agents_ci95": [
+        1717,
+        2041
+      ],
+      "share_of_all_agents": 0.0472,
+      "share_of_all_agents_ci95": [
+        0.0432,
+        0.0514
+      ]
+    },
+    "work": {
+      "sampled_agents_positive": 600,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.2,
+      "ci95": [
+        0.1875,
+        0.2132
+      ],
+      "est_agents": 3095,
+      "est_agents_ci95": [
+        2902,
+        3299
+      ],
+      "share_of_all_agents": 0.078,
+      "share_of_all_agents_ci95": [
+        0.0731,
+        0.0831
+      ]
+    },
+    "identity": {
+      "sampled_agents_positive": 495,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.165,
+      "ci95": [
+        0.1535,
+        0.1773
+      ],
+      "est_agents": 2553,
+      "est_agents_ci95": [
+        2375,
+        2744
+      ],
+      "share_of_all_agents": 0.0643,
+      "share_of_all_agents_ci95": [
+        0.0598,
+        0.0691
+      ]
+    },
+    "schedule": {
+      "sampled_agents_positive": 124,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.0413,
+      "ci95": [
+        0.0354,
+        0.0483
+      ],
+      "est_agents": 640,
+      "est_agents_ci95": [
+        549,
+        747
+      ],
+      "share_of_all_agents": 0.0161,
+      "share_of_all_agents_ci95": [
+        0.0138,
+        0.0188
+      ]
+    },
+    "legal": {
+      "sampled_agents_positive": 2,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.0007,
+      "ci95": [
+        0.0002,
+        0.0022
+      ],
+      "est_agents": 10,
+      "est_agents_ci95": [
+        4,
+        35
+      ],
+      "share_of_all_agents": 0.0003,
+      "share_of_all_agents_ci95": [
+        0.0001,
+        0.0009
+      ]
+    },
+    "other_sensitive": {
+      "sampled_agents_positive": 307,
+      "sampled_agents": 3000,
+      "share_of_mentioning_agents": 0.1023,
+      "ci95": [
+        0.093,
+        0.1125
+      ],
+      "est_agents": 1584,
+      "est_agents_ci95": [
+        1440,
+        1741
+      ],
+      "share_of_all_agents": 0.0399,
+      "share_of_all_agents_ci95": [
+        0.0363,
+        0.0439
+      ]
+    }
+  },
+  "item_level": {
+    "revealed": {
+      "share_of_candidate_items": 0.2701,
+      "ci95": [
+        0.2502,
+        0.291
+      ],
+      "est_items": 14357,
+      "share_of_all_items": 0.00675
+    },
+    "sensitive": {
+      "share_of_candidate_items": 0.1891,
+      "ci95": [
+        0.173,
+        0.2059
+      ],
+      "est_items": 10049,
+      "share_of_all_items": 0.00472
+    },
+    "comms": {
+      "share_of_candidate_items": 0.019,
+      "ci95": [
+        0.0153,
+        0.0233
+      ],
+      "est_items": 1011,
+      "share_of_all_items": 0.00048
+    },
+    "unweighted_share_of_classified_items": 0.2769,
+    "by_kind_unweighted": {
+      "comment": {
+        "items": 3282,
+        "revealed": 589,
+        "share": 0.1795
+      },
+      "post": {
+        "items": 4669,
+        "revealed": 1613,
+        "share": 0.3455
+      }
+    }
+  },
+  "among_revealing_items": {
+    "items": 2202,
+    "sensitive": 1554,
+    "promotional": 349,
+    "with_private_comms": 135,
+    "category_counts": {
+      "health": 84,
+      "money": 282,
+      "relationships": 112,
+      "location": 483,
+      "work": 949,
+      "identity": 630,
+      "schedule": 152,
+      "legal": 4,
+      "other_sensitive": 411
+    }
+  },
+  "other_flags_in_sample": {
+    "items_fiction_or_roleplay": 389,
+    "items_classifier_says_not_about_own_human": 276
+  },
+  "heavy_posters": {
+    "sampled_agents_with_10plus_candidate_items": 175,
+    "of_which_revealed": 150,
+    "share_revealed_among_1_item_agents": 0.2825,
+    "share_revealed_among_2_to_9_item_agents": 0.5424,
+    "share_revealed_among_10plus_item_agents": 0.8571,
+    "revealing_items_from_top_1pct_of_sampled_agents": 0.0509,
+    "max_revealing_items_one_sampled_agent": 14
+  },
+  "recall_check_non_matching_items": {
+    "items_checked": 500,
+    "revealed": 11,
+    "share": 0.022,
+    "ci95": [
+      0.0123,
+      0.039
+    ],
+    "non_matching_items_in_corpus_approx": 2062999
+  },
+  "api_cost_usd": 8.246,
+  "api_cost_breakdown": [
+    {
+      "step": "pilot n=60 seed=20260128",
+      "mode": "standard",
+      "input_tokens": 74707,
+      "output_tokens": 5548,
+      "cost_usd": 0.1024
+    },
+    {
+      "step": "pilot n=60 seed=20260128",
+      "mode": "standard",
+      "input_tokens": 86467,
+      "output_tokens": 5953,
+      "cost_usd": 0.1162
+    },
+    {
+      "step": "pilot n=60 seed=777",
+      "mode": "standard",
+      "input_tokens": 90038,
+      "output_tokens": 5802,
+      "cost_usd": 0.119
+    },
+    {
+      "step": "batch msgbatch_01R2aCYCPUDrqTfgwfQu5cdy n=8451",
+      "mode": "batch",
+      "input_tokens": 12049335,
+      "output_tokens": 753615,
+      "cost_usd": 7.9087
+    }
+  ]
+}

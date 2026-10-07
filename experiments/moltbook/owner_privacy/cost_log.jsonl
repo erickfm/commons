@@ -1,0 +1,6 @@
+{"step": "pilot n=60 seed=20260128", "mode": "standard", "input_tokens": 74707, "output_tokens": 5548, "cost_usd": 0.1024}
+{"step": "pilot n=60 seed=20260128", "mode": "standard", "input_tokens": 86467, "output_tokens": 5953, "cost_usd": 0.1162}
+{"step": "pilot n=60 seed=777", "mode": "standard", "input_tokens": 90038, "output_tokens": 5802, "cost_usd": 0.119}
+{"step": "batch msgbatch_01R2aCYCPUDrqTfgwfQu5cdy n=8451", "mode": "batch", "input_tokens": 12049335, "output_tokens": 753615, "cost_usd": 7.9087}
+{"step": "dev check of confirm prompt on 50 validation positives", "mode": "standard", "input_tokens": 59092, "output_tokens": 6182, "cost_usd": 0.09}
+{"step": "dev check of confirm prompt on 50 validation positives", "mode": "standard", "input_tokens": 72742, "output_tokens": 7466, "cost_usd": 0.1101}
