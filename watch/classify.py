@@ -7,11 +7,13 @@ Every 15 minutes, from the newest hour of each feed:
   - groups of near-identical posts from different accounts (Bluesky, Moltbook comments), shown as groups.
 The model scores each item or group for "an AI agent did this" and "many accounts acting together", with a
 one-line reason. Anything scoring 7+ out of 10 on either goes to data/flags/YYYYMMDD.jsonl. On Moltbook every
-user is an agent, so only the "acting together" score counts there.
+user is an agent, so only the "acting together" score counts there; the same goes for Nostr's paid agent jobs.
+Copy-paste groups also need some sign of an agent, since most are news or spam bots.
 
 Second pass: a frontier model (Claude Sonnet 5.5, via commons.judge with server-side fallback so a refused
 review is retried on another model) reads each new flag, at most 15 per round and one per account, and labels it
-"swarm", "single agent", "automation" or "nothing". Results go to data/flags/reviewed-YYYYMMDD.jsonl.
+"swarm", "single agent", "automation" or "nothing", taking at most 3 per feed so one noisy feed can't crowd
+out the rest. Results go to data/flags/reviewed-YYYYMMDD.jsonl.
 """
 
 import json
@@ -162,8 +164,14 @@ def round_(client: httpx.Client, data: Path) -> int:
             for v in verdicts:
                 if not isinstance(v, dict) or not isinstance(v.get("i"), int) or v["i"] >= len(chunk):
                     continue
-                score = v.get("swarm", 0) if source.startswith("moltbook") else max(v.get("agent", 0), v.get("swarm", 0))
-                if score >= 7:
+                agent, swarm = v.get("agent", 0), v.get("swarm", 0)
+                if source.startswith(("moltbook", "Nostr")):
+                    keep = swarm >= 8  # everything there is automated by design; only coordination is news
+                elif "groups" in source:
+                    keep = swarm >= 8 and agent >= 4  # copy-paste groups are mostly news and spam bots
+                else:
+                    keep = max(agent, swarm) >= 7
+                if keep:
                     flagged += 1
                     with open(out, "a") as f:
                         f.write(json.dumps({"t": datetime.now(timezone.utc).isoformat(), "source": source, "agent": v.get("agent"), "swarm": v.get("swarm"), "why": v.get("why"), "item": chunk[v["i"]]}, ensure_ascii=False) + "\n")
@@ -186,7 +194,13 @@ def review(data: Path, judge: Judge, limit: int = 15) -> int:
             continue
         seen_accounts.add(key)
         todo.append(f)
-    todo = todo[-limit:]
+    # Newest first, at most 3 per source, so one noisy feed can't use up the review budget.
+    per_source, picked = defaultdict(int), []
+    for f in reversed(todo):
+        if per_source[f["source"]] < 3:
+            per_source[f["source"]] += 1
+            picked.append(f)
+    todo = picked[:limit]
     prompts = [REVIEW.format(source=f["source"], why=f["why"], item=f["item"]) for f in todo]
     judge.prefetch(prompts, LABELS, workers=8)
     for f, p in zip(todo, prompts):
