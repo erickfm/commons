@@ -59,11 +59,17 @@ def read_lines(path: Path):
     member from a killed writer followed by new members (we skip ahead to the next gzip header)."""
     raw, pos = path.read_bytes(), 0
     while pos < len(raw):
-        d, buf = zlib.decompressobj(16 + zlib.MAX_WBITS), b""
+        # Feed small chunks so everything before a broken spot is kept when decompression fails.
+        d, parts, end = zlib.decompressobj(16 + zlib.MAX_WBITS), [], len(raw)
         try:
-            buf = d.decompress(raw[pos:])
+            for i in range(pos, len(raw), 1 << 16):
+                parts.append(d.decompress(raw[i:i + (1 << 16)]))
+                if d.eof:
+                    end = min(i + (1 << 16), len(raw)) - len(d.unused_data)
+                    break
         except zlib.error:
             pass
+        buf = b"".join(parts)
         *lines, _ = buf.split(b"\n")
         for line in lines:
             try:
@@ -71,7 +77,7 @@ def read_lines(path: Path):
             except ValueError:
                 pass
         if d.eof:
-            pos = len(raw) - len(d.unused_data)
+            pos = end
         else:
             nxt = raw.find(b"\x1f\x8b\x08", pos + 1)
             if nxt < 0:
