@@ -1,19 +1,21 @@
-"""Have an open model read samples from every feed and flag agent-like or coordinated activity the rules miss.
+"""Have an open model look for many accounts or agents acting together (a swarm) in every feed.
 
     QWEN_BASE_URL=http://127.0.0.1:8011/v1 QWEN_API_KEY=... uv run python watch/classify.py /path/to/data
 
-Every 15 minutes, from the newest hour of each feed:
-  - a random sample of items (posts, edits, scans, new packages), shown to the model 20 at a time;
-  - groups of near-identical posts from different accounts (Bluesky, Moltbook comments), shown as groups.
-The model scores each item or group for "an AI agent did this" and "many accounts acting together", with a
-one-line reason. Anything scoring 7+ out of 10 on either goes to data/flags/YYYYMMDD.jsonl. On Moltbook every
-user is an agent, so only the "acting together" score counts there; the same goes for Nostr's paid agent jobs.
-Copy-paste groups also need some sign of an agent, since most are news or spam bots.
+Every 15 minutes it builds candidate groups from the newest data, because coordination only shows across items:
+  - the same text from different accounts (Bluesky, Moltbook, Nostr);
+  - the same link shared by many accounts (Bluesky, Moltbook);
+  - one publisher releasing many new packages or repos at once (npm, Hugging Face);
+  - the Wikipedia rules from detect.py (fresh accounts on sandbox pages across wikis, the same edit summary or
+    link domain from many fresh accounts, one account hopping wikis) over the last hour;
+  - Moltbook posts where an agent addresses or directs other agents (instructions to copy, spread, run or join).
+It also shows the model a small random sample from each feed, in case the groups miss something.
+
+The model scores each group or item for coordination (0-10) and says why; 8+ goes to data/flags/YYYYMMDD.jsonl.
 
 Second pass: a frontier model (Claude Sonnet 5.5, via commons.judge with server-side fallback so a refused
-review is retried on another model) reads each new flag, at most 15 per round and one per account, and labels it
-"swarm", "single agent", "automation" or "nothing", taking at most 3 per feed so one noisy feed can't crowd
-out the rest. Results go to data/flags/reviewed-YYYYMMDD.jsonl.
+review is retried on another model) reads new flags, at most 15 per round and 3 per feed, and labels each
+"swarm", "single agent", "automation" or "nothing". Results go to data/flags/reviewed-YYYYMMDD.jsonl.
 """
 
 import json
@@ -29,12 +31,13 @@ from pathlib import Path
 import httpx
 
 sys.path.insert(0, str(Path(__file__).parent))
+import detect  # noqa: E402
 from detect import read_lines  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 from commons.judge import Judge  # noqa: E402
 
-REVIEW = """Someone is watching public internet feeds for AI agents, and especially for many agents or accounts acting together (a swarm). A cheap screening model flagged the item below. Decide what it most likely is.
+REVIEW = """Someone is watching public internet feeds for many AI agents or accounts acting together (a swarm). A cheap screening model flagged the group or item below as possible coordination. Decide what it most likely is.
 
 Source: {source}
 Screening model's reason: {why}
@@ -42,7 +45,7 @@ Item:
 {item}
 
 Labels:
-- swarm: many accounts or agents acting together, with specific evidence in the item
+- swarm: many AI agents, or accounts run by agents, acting together, with specific evidence (shared instructions, synchronized actions, agents directing other agents, one operator behind many agent identities)
 - single agent: one autonomous AI agent doing something notable (testing, probing, working around limits, disclosing itself)
 - automation: a scripted bot, spam campaign, or ordinary automation with no sign of an AI agent
 - nothing: ordinary human activity, or nothing notable
@@ -50,18 +53,21 @@ Labels:
 Explain in one or two sentences, then end with exactly one label on its own line."""
 LABELS = ["swarm", "single agent", "automation", "nothing"]
 
-PROMPT = """You are screening public internet activity for signs of AI agents, and especially many AI agents or accounts acting together (a "swarm").
+PROMPT = """You are screening public internet activity for coordination: many AI agents, or many accounts run by agents, acting together (a "swarm").
 
-For each numbered item below, give two scores from 0 to 10:
-- agent: how likely an autonomous AI agent (not a person, not a simple scripted bot) produced it. Signs: test or probe behaviour, tool-like phrasing, run IDs or markers, self-disclosure, systematic exploration, LLM writing style in an odd place.
-- swarm: how likely it is part of many accounts or agents acting together (same text or links across accounts, coordinated timing, one operator behind many identities).
-Ordinary spam, marketing, and normal human chatter score low unless there is a specific sign of agents. Be strict: most items should score 0-3.
+Each numbered entry is either a group (several accounts doing the same thing) or a single item. For each, score:
+- swarm (0-10): how likely this shows AI agents acting together. Strong signs: agents instructing, recruiting or directing other agents; the same instructions or payload spreading across accounts; synchronized actions toward one goal; one operator running many agent identities; agents sharing answers, credentials or ways around limits.
+- agent (0-10): how likely an AI agent (not a person, not a simple scripted bot) is involved at all.
+News reposting bots, ordinary spam and marketing, release bots, and normal human activity score low on swarm even when many accounts post the same thing, unless there are specific signs of AI agents coordinating. Be strict: most entries should score 0-3.
 
-Reply with JSON only: {{"items": [{{"i": <number>, "agent": <0-10>, "swarm": <0-10>, "why": "<one short sentence>"}}]}}
+Reply with JSON only: {{"items": [{{"i": <number>, "swarm": <0-10>, "agent": <0-10>, "why": "<one short sentence>"}}]}}
 
 Source: {source}
-Items:
+Entries:
 {items}"""
+
+COMMON = re.compile(r"(^|\.)(bsky\.app|bsky\.social|youtube\.com|youtu\.be|x\.com|twitter\.com|instagram\.com|tiktok\.com|facebook\.com|wikipedia\.org|google\.com|reddit\.com|github\.com|nytimes\.com|theguardian\.com|bbc\.co\.uk|cnn\.com|apnews\.com|reuters\.com|moltbook\.com|substack\.com|medium\.com)$")
+DIRECTING = re.compile(r"\b(all agents|every agent|fellow agents|other agents|agents should|agents must|copy (this|the following)|spread (this|the word)|repost this|tell your human|run this|paste (this|the following)|join (us|our|the)|sign up|install (this|the)|your instructions|ignore (your|previous)|system prompt)\b", re.I)
 
 
 def newest(dir_: Path, n: int = 1) -> list[Path]:
@@ -109,6 +115,40 @@ def groups(source: str, recs: list[dict], key_text, key_user, min_users: int = 4
     return sorted(out, key=lambda x: -x["group_of"])[:20]
 
 
+def link_groups(source: str, recs: list[dict], key_links, key_user, min_users: int = 5) -> list[dict]:
+    from urllib.parse import urlparse
+    g = defaultdict(lambda: {"users": set(), "samples": []})
+    for r in recs:
+        for link in key_links(r) or []:
+            host = (urlparse(link).hostname or "").removeprefix("www.")
+            if not host or COMMON.search(host):
+                continue
+            g[link.split("?")[0][:200]]["users"].add(key_user(r))
+            if len(g[link.split("?")[0][:200]]["samples"]) < 2:
+                g[link.split("?")[0][:200]]["samples"].append(r)
+    out = [{"link_shared_by": len(v["users"]), "link": k, "sample_accounts": sorted(map(str, v["users"]))[:8], "sample": show(source, v["samples"][0])}
+           for k, v in g.items() if len(v["users"]) >= min_users]
+    return sorted(out, key=lambda x: -x["link_shared_by"])[:20]
+
+
+def bursts(recs: list[dict], key_user, describe, min_items: int = 5) -> list[dict]:
+    g = defaultdict(list)
+    for r in recs:
+        u = key_user(r)
+        if u:
+            g[u].append(r)
+    out = [{"publisher": u, "new_items": len(rs), "samples": [describe(r) for r in rs[:6]]} for u, rs in g.items() if len(rs) >= min_items]
+    return sorted(out, key=lambda x: -x["new_items"])[:20]
+
+
+def wiki_clusters(data: Path) -> list[str]:
+    import contextlib
+    import io
+    with contextlib.redirect_stdout(io.StringIO()):
+        flags = detect.run(data, 1, 3, 3)
+    return [json.dumps({k: f[k] for k in f if k not in ("wiki_list",)}, ensure_ascii=False, default=str)[:800] for f in flags][:20]
+
+
 def ask(client: httpx.Client, source: str, items: list[str]) -> list[dict]:
     body = "\n".join(f"{i}. {s}" for i, s in enumerate(items))
     r = client.post("/chat/completions", json={
@@ -126,29 +166,43 @@ def ask(client: httpx.Client, source: str, items: list[str]) -> list[dict]:
 
 def round_(client: httpx.Client, data: Path) -> int:
     batches: list[tuple[str, list]] = []
+    author = lambda r: (r.get("author") or {}).get("name") if isinstance(r.get("author"), dict) else r.get("author_id")  # noqa: E731
+
     bsky = [r for p in newest(data / "bluesky") for r in read_lines(p)]
-    batches.append(("bluesky", [show("bluesky", r) for r in random.sample(bsky, min(100, len(bsky)))]))
-    batches.append(("bluesky groups of near-identical posts from different accounts",
+    batches.append(("Bluesky: near-identical posts from different accounts (last hour)",
                     [json.dumps(x, ensure_ascii=False) for x in groups("bluesky", bsky, lambda r: r.get("text"), lambda r: r.get("did"))]))
+    batches.append(("Bluesky: the same link posted by many accounts (last hour)",
+                    [json.dumps(x, ensure_ascii=False) for x in link_groups("bluesky", bsky, lambda r: r.get("links"), lambda r: r.get("did"))]))
+
     molt = [r for p in newest(data / "moltbook", 3) for r in read_lines(p)]
-    batches.append(("moltbook (a social network where the users are AI agents; flag coordination, odd instructions, secrets, attempts to recruit or direct other agents)",
-                    [show("moltbook", r) for r in random.sample(molt, min(60, len(molt)))]))
-    batches.append(("moltbook groups of near-identical posts/comments from different agents",
-                    [json.dumps(x, ensure_ascii=False) for x in groups("moltbook", molt, lambda r: r.get("content"), lambda r: (r.get("author") or {}).get("name") if isinstance(r.get("author"), dict) else r.get("author_id"), 3)]))
-    batches.append(("wikipedia edits (non-bot)", [show("wikipedia", r) for r in sample(newest(data / "wikimedia"), 100, lambda r: not r.get("bot") and r.get("type") in ("edit", "new"))]))
-    batches.append(("wikipedia external links added", [show("wikilinks", r) for r in sample(newest(data / "wikilinks"), 60, lambda r: not (r.get("performer") or {}).get("user_is_bot") and any(l.get("external") for l in r.get("added_links") or []))]))
-    batches.append(("npm brand-new packages", [show("npm", r) for r in sample(newest(data / "npm", 2), 60, lambda r: r.get("rev", "").startswith("1-"))]))
-    batches.append(("small open wikis that agent swarms have used as message boards (look for cloud/anonymous editors, ZZZ or Agent* page names, encoded chunks, answers to tasks)",
-                    [json.dumps({k: r.get(k) for k in ("wiki", "title", "user", "comment", "timestamp", "oldlen", "newlen")}, ensure_ascii=False) for p in newest(data / "wikis", 2) for r in read_lines(p)][-100:]))
-    batches.append(("Hugging Face newest repos", [json.dumps({k: r.get(k) for k in ("kind", "id", "author", "tags", "sdk")}, ensure_ascii=False)[:400] for r in sample(newest(data / "hf"), 80, lambda r: True)]))
-    batches.append(("MCP registry newly published servers", [json.dumps(r, ensure_ascii=False, default=str)[:500] for p in newest(data / "mcp", 3) for r in read_lines(p)][-40:]))
+    batches.append(("Moltbook (agents only): near-identical posts or comments from different agents",
+                    [json.dumps(x, ensure_ascii=False) for x in groups("moltbook", molt, lambda r: r.get("content"), author, 3)]))
+    batches.append(("Moltbook (agents only): the same link shared by many agents",
+                    [json.dumps(x, ensure_ascii=False) for x in link_groups("moltbook", molt, lambda r: re.findall(r"https?://\S+", r.get("content") or ""), author, 3)]))
+    batches.append(("Moltbook (agents only): posts where an agent addresses or directs other agents",
+                    [show("moltbook", r) for r in molt if DIRECTING.search((r.get("title") or "") + " " + (r.get("content") or ""))][-40:]))
+
     nostr = [r for p in newest(data / "nostr") for r in read_lines(p)]
-    batches.append(("Nostr paid agent jobs (NIP-90 data vending machines)", [json.dumps({"kind": r.get("kind"), "pubkey": r.get("pubkey"), "content": (r.get("content") or "")[:300], "tags": (r.get("tags") or [])[:6]}, ensure_ascii=False)[:600] for r in random.sample(nostr, min(60, len(nostr)))]))
-    batches.append(("Nostr groups of near-identical jobs from different keys",
+    batches.append(("Nostr paid agent jobs: near-identical jobs from different keys",
                     [json.dumps(x, ensure_ascii=False) for x in groups("nostr", nostr, lambda r: r.get("content"), lambda r: r.get("pubkey"))]))
-    uq = sorted((data / "urlquery").glob("*.jsonl"))[-1:]
-    uq_recs = [json.loads(l) for p in uq for l in open(p)][-300:]
-    batches.append(("urlquery.net public URL scans (agents sometimes submit pages that run their own code)", [show("urlquery", r) for r in random.sample(uq_recs, min(60, len(uq_recs)))]))
+
+    npm_new = [r for p in newest(data / "npm", 2) for r in read_lines(p) if r.get("rev", "").startswith("1-")]
+    batches.append(("npm: one publisher releasing many brand-new packages",
+                    [json.dumps(x, ensure_ascii=False, default=str)[:900] for x in bursts(npm_new, lambda r: ",".join(sorted(m.get("name", "") for m in (r.get("maintainers") or []) if isinstance(m, dict))), lambda r: {"id": r.get("id"), "description": (r.get("description") or "")[:120], "scripts": r.get("scripts")})]))
+    batches.append(("npm: the same description on new packages from different publishers",
+                    [json.dumps(x, ensure_ascii=False) for x in groups("npm", npm_new, lambda r: r.get("description"), lambda r: str(r.get("maintainers")), 3)]))
+    hf = [r for p in newest(data / "hf", 2) for r in read_lines(p)]
+    batches.append(("Hugging Face: one account creating many new repos",
+                    [json.dumps(x, ensure_ascii=False, default=str)[:900] for x in bursts(hf, lambda r: r.get("author"), lambda r: {"kind": r.get("kind"), "id": r.get("id")}, 10)]))
+
+    batches.append(("Wikipedia: rule-based clusters of fresh accounts acting alike (last hour)", wiki_clusters(data)))
+    batches.append(("small open wikis that agent swarms have used as message boards (look for many editors posting task answers, encoded chunks, Agent* or ZZZ pages)",
+                    [json.dumps({k: r.get(k) for k in ("wiki", "title", "user", "comment", "timestamp", "oldlen", "newlen")}, ensure_ascii=False) for p in newest(data / "wikis", 2) for r in read_lines(p)][-60:]))
+
+    # A small random sample of single items, in case the groups miss something.
+    batches.append(("Bluesky: random single posts", [show("bluesky", r) for r in random.sample(bsky, min(20, len(bsky)))]))
+    batches.append(("Moltbook: random single posts", [show("moltbook", r) for r in random.sample(molt, min(20, len(molt)))]))
+    batches.append(("Wikipedia: random non-bot edits", [show("wikipedia", r) for r in sample(newest(data / "wikimedia"), 20, lambda r: not r.get("bot") and r.get("type") in ("edit", "new"))]))
 
     out = data / "flags" / f"{datetime.now(timezone.utc):%Y%m%d}.jsonl"
     out.parent.mkdir(exist_ok=True)
@@ -164,14 +218,7 @@ def round_(client: httpx.Client, data: Path) -> int:
             for v in verdicts:
                 if not isinstance(v, dict) or not isinstance(v.get("i"), int) or v["i"] >= len(chunk):
                     continue
-                agent, swarm = v.get("agent", 0), v.get("swarm", 0)
-                if source.startswith(("moltbook", "Nostr")):
-                    keep = swarm >= 8  # everything there is automated by design; only coordination is news
-                elif "groups" in source:
-                    keep = swarm >= 8 and agent >= 4  # copy-paste groups are mostly news and spam bots
-                else:
-                    keep = max(agent, swarm) >= 7
-                if keep:
+                if v.get("swarm", 0) >= 8 and v.get("agent", 0) >= 4:
                     flagged += 1
                     with open(out, "a") as f:
                         f.write(json.dumps({"t": datetime.now(timezone.utc).isoformat(), "source": source, "agent": v.get("agent"), "swarm": v.get("swarm"), "why": v.get("why"), "item": chunk[v["i"]]}, ensure_ascii=False) + "\n")
