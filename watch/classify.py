@@ -5,7 +5,7 @@
 Every 15 minutes it builds candidate groups from the newest data, because coordination only shows across items:
   - the same text from different accounts (Bluesky, Moltbook, Nostr);
   - the same link shared by many accounts (Bluesky, Moltbook);
-  - one publisher releasing many new packages or repos at once (npm, Hugging Face);
+  - one publisher releasing many new packages, repos or agent tools at once (npm, Hugging Face, MCP registry);
   - the Wikipedia rules from detect.py (fresh accounts on sandbox pages across wikis, the same edit summary or
     link domain from many fresh accounts, one account hopping wikis) over the last hour;
   - Moltbook posts where an agent addresses or directs other agents (instructions to copy, spread, run or join).
@@ -194,6 +194,10 @@ def round_(client: httpx.Client, data: Path) -> int:
     hf = [r for p in newest(data / "hf", 2) for r in read_lines(p)]
     batches.append(("Hugging Face: one account creating many new repos",
                     [json.dumps(x, ensure_ascii=False, default=str)[:900] for x in bursts(hf, lambda r: r.get("author"), lambda r: {"kind": r.get("kind"), "id": r.get("id")}, 10)]))
+
+    mcp = [r for p in newest(data / "mcp", 2) for r in read_lines(p)]
+    batches.append(("MCP registry: one publisher releasing or updating many agent tools at once",
+                    [json.dumps(x, ensure_ascii=False, default=str)[:900] for x in bursts(mcp, lambda r: (r.get("server") or {}).get("name", "").split("/")[0], lambda r: {"name": (r.get("server") or {}).get("name"), "description": ((r.get("server") or {}).get("description") or "")[:100], "remote": [x.get("url") for x in (r.get("server") or {}).get("remotes") or []][:1]}, 10)]))
 
     batches.append(("Wikipedia: rule-based clusters of fresh accounts acting alike (last hour)", wiki_clusters(data)))
     batches.append(("small open wikis that agent swarms have used as message boards (look for many editors posting task answers, encoded chunks, Agent* or ZZZ pages)",
