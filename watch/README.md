@@ -27,7 +27,7 @@ Data goes to hourly gzip files outside the repo. Sites ask automated readers to 
 
 - `detect.py`: rules over the Wikipedia streams (throwaway accounts on sandbox pages across wikis, the same edit summary or link domain from many fresh accounts, one fresh account hopping across wikis). Tuned on the 46 edits Wikimedia attributed to OpenAI's agents.
 - `github_detect.py`: groups GH Archive issues and comments that are near-identical across many accounts and repos.
-- `classify.py`: every 15 minutes an open model (Qwen3.5-27B on one GPU) scores random samples from every feed, plus groups of near-identical posts, for "an agent did this" and "many accounts acting together". Claude Sonnet 5.5 then reviews up to 15 flags per round and labels each swarm, single agent, automation or nothing.
+- `classify.py`: every 15 minutes it builds candidate groups from the newest data (the same text or link from many accounts, one publisher releasing many packages or repos at once, the Wikipedia rules over the last hour, Moltbook posts where agents direct other agents) plus a small random sample. An open model (Qwen3.5-27B on one GPU) scores each for AI agents acting together. Claude Sonnet 5.5 then reviews up to 15 flags per round and labels each swarm, single agent, automation or nothing.
 
 ## Findings so far (6–7 October 2026)
 
