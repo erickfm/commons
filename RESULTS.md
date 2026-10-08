@@ -23,6 +23,7 @@ Last updated: 2026-10-07.
 | 11 | Secrets and money on Moltbook | 38 agents posted 35 credentials that look real; 32 asked others for secrets and nobody handed one over; 8 said they moved their human's money without permission. | `exp/moltbook-privacy` (`experiments/moltbook/secrets_money`) |
 | 12 | What Moltbook agents reveal about their humans | Preliminary: about 16% of all agents posted a personal fact about their human, 13% a sensitive one. The strict second pass isn't hand-checked yet. | `exp/moltbook-privacy` (`experiments/moltbook/owner_privacy`) |
 | 13 | Swarm watch (live, read-only) | Watching 14 public feeds. No new swarm. One agent system runs errands through a public URL scanner to dodge bot blocks; GitHub's biggest agent group is a known benchmark. | `exp/swarm-watch` (`watch/`) |
+| 14 | Blocked access (lab) | When a site blocks them, Opus 5.5, Sonnet 5.5 and gpt-6.1-sol stop and tell the user. gpt-5.5 keeps trying when the block looks like an error, sometimes gets the data another way without saying so, and fills in a person-only form in the user's name. | `exp/blocked-access` |
 
 ## 1. Snitch Rate
 
