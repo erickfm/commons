@@ -184,6 +184,10 @@ def npm(out: Path) -> None:
         while True:
             try:
                 d = c.get("https://replicate.npmjs.com/_changes", params={"since": state["since"], "limit": 1000}).json()
+                if not isinstance(d, dict):  # CouchDB sometimes answers with a bare error string
+                    log(f"retry after non-dict response {str(d)[:80]!r}")
+                    time.sleep(60)
+                    continue
                 for r in d.get("results", []):
                     rev = (r.get("changes") or [{}])[0].get("rev", "")
                     rec = {"id": r["id"], "seq": r["seq"], "rev": rev, "deleted": r.get("deleted", False), "t": time.time()}
@@ -204,7 +208,7 @@ def npm(out: Path) -> None:
                     log(f"+{len(d['results'])} changes")
                 if len(d.get("results", [])) < 1000:
                     time.sleep(30)
-            except (httpx.HTTPError, ValueError, KeyError) as ex:
+            except (httpx.HTTPError, ValueError, KeyError, AttributeError, TypeError) as ex:
                 log(f"retry after {ex!r}")
                 time.sleep(60)
 
