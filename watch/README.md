@@ -2,10 +2,10 @@
 
 Read-only watchers that look for AI agents, and especially many agents acting together, in public data. Nothing here posts, submits or writes to the sites it reads.
 
-**Status (21 October 2026):** running on a laptop since 6 October, with an open model screening samples on one GPU. One genuine find so far — see "Findings" below — amid a steady stream of duds. Live status and findings: the "Swarm Watch" dashboard (a private claude.ai artifact).
+**Status (28 October 2026):** running on a laptop since 6 October, with an open model screening samples on one GPU. One genuine find so far — see "Findings" below — amid a steady stream of duds. Live status and findings: the "Swarm Watch" dashboard (a private claude.ai artifact).
 
-Two operational notes, both current:
-- **Screening was blind 14–19 October.** The GPU serve job ended and its restart jobs jammed the cluster queue; recording never stopped, but the model was unreachable, so five days of rounds flagged nothing. The job is back and the Oct 12–19 backlog was re-screened offline (nothing new). The tunnel that connects to the model used to hardcode the GPU node, which is what hid the outage; `tunnel.sh` now rediscovers the node on every reconnect so this can't recur silently.
+Recording has run without interruption throughout; the screening model, which runs off-laptop on a shared GPU, is the fragile part. Current operational notes:
+- **The GPU serve job keeps expiring.** It has a 7-day walltime, and when it ends the model goes offline until it's resubmitted — screening was blind this way 14–19 October and again from ~26 October. Recording never stops, so no data is lost and the gap can be re-screened offline. The tunnel used to hardcode the GPU node (which hid the first outage); `tunnel.sh` now rediscovers the node on every reconnect, so once a new serve job starts, screening reconnects on its own. The remaining gap is that nothing resubmits the job when it expires — that wants a cluster-side watchdog.
 - **The urlquery feed is down since 17 October.** urlquery.net removed the public search path we read (`/api/htmx/search/` now returns 404). The site still works; the watcher needs re-pointing at whatever replaced that endpoint.
 
 ## What's recorded
