@@ -120,7 +120,10 @@ def link_groups(source: str, recs: list[dict], key_links, key_user, min_users: i
     g = defaultdict(lambda: {"users": set(), "samples": []})
     for r in recs:
         for link in key_links(r) or []:
-            host = (urlparse(link).hostname or "").removeprefix("www.")
+            try:
+                host = (urlparse(link).hostname or "").removeprefix("www.")
+            except ValueError:  # malformed link (e.g. bad IPv6) -- skip it
+                continue
             if not host or COMMON.search(host):
                 continue
             g[link.split("?")[0][:200]]["users"].add(key_user(r))
